@@ -1,213 +1,251 @@
 package com.rsudanta.currencyconverter.presentation.conversion
 
 import android.util.Log
-import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rsudanta.currencyconverter.domain.model.Currency
 import com.rsudanta.currencyconverter.domain.repository.ConversionRepository
+import com.rsudanta.currencyconverter.domain.repository.CurrencyRepository
+import com.rsudanta.currencyconverter.presentation.conversion.bottom_sheet.SearchAppBarState
 import com.rsudanta.currencyconverter.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ConversionViewModel @Inject constructor(private val repository: ConversionRepository) :
+class ConversionViewModel @Inject constructor(
+    private val conversionRepository: ConversionRepository,
+    private val currencyRepository: CurrencyRepository
+) :
     ViewModel() {
-    private var _conversionState = mutableStateOf(ConversionState())
-    val conversionState: State<ConversionState> = _conversionState
+    var conversionState = mutableStateOf(ConversionState())
+        private set
 
-    fun getConversion(to: String, from: String, amount: Double) {
+    var searchAppBarState = mutableStateOf(SearchAppBarState.CLOSED)
+        private set
+
+    var convertFrom = mutableStateOf<Currency?>(null)
+        private set
+
+    var convertTo = mutableStateOf<Currency?>(null)
+        private set
+
+    var amount = mutableStateOf("0")
+        private set
+
+    fun getConversion() {
         viewModelScope.launch {
-            repository.getConversion(to, from, amount).collect { result ->
+            conversionRepository.getConversion(
+                to = convertTo.value?.code,
+                from = convertFrom.value?.code,
+                amount = if (amount.value.isEmpty()) 0.0 else amount.value.toDouble()
+            ).collect { result ->
                 when (result) {
                     is Resource.Success -> {
                         result.data?.let {
-                            _conversionState.value.convert = it
+                            conversionState.value.convert = it
+                            conversionState.value = conversionState.value.copy(error = "")
                         }
                     }
                     is Resource.Error -> {
-                        _conversionState.value =
-                            result.message?.let { _conversionState.value.copy(error = it) }!!
+                        conversionState.value = ConversionState()
+                        conversionState.value =
+                            result.message?.let { conversionState.value.copy(error = it) }!!
                     }
                     is Resource.Loading -> {
-                        _conversionState.value =
-                            _conversionState.value.copy(isLoading = result.isLoading)
+                        conversionState.value =
+                            conversionState.value.copy(isLoading = result.isLoading)
                     }
                 }
             }
         }
     }
-}
 
+    fun clearResult() {
+        conversionState.value = ConversionState()
+    }
 
-enum class CurrencyList(val country: String) {
-    AED("United Arab Emirates Dirham"),
-    AFN("Afghan Afghani"),
-    ALL("Albanian Lek"),
-    AMD("Armenian Dram"),
-    ANG("Netherlands Antillean Guilder"),
-    AOA("Angolan Kwanza"),
-    ARS("Argentine Peso"),
-    AUD("Australian Dollar"),
-    AWG("Aruban Florin"),
-    AZN("Azerbaijani Manat"),
-    BAM("Bosnia-Herzegovina Convertible Mark"),
-    BBD("Barbadian Dollar"),
-    BDT("Bangladeshi Taka"),
-    BGN("Bulgarian Lev"),
-    BHD("Bahraini Dinar"),
-    BIF("Burundian Franc"),
-    BMD("Bermudan Dollar"),
-    BND("Brunei Dollar"),
-    BOB("Bolivian Boliviano"),
-    BRL("Brazilian Real"),
-    BSD("Bahamian Dollar"),
-    BTC("Bitcoin"),
-    BTN("Bhutanese Ngultrum"),
-    BWP("Botswanan Pula"),
-    BYN("New Belarusian Ruble"),
-    BYR("Belarusian Ruble"),
-    BZD("Belize Dollar"),
-    CAD("Canadian Dollar"),
-    CDF("Congolese Franc"),
-    CHF("Swiss Franc"),
-    CLF("Chilean Unit of Account (UF)"),
-    CLP("Chilean Peso"),
-    CNY("Chinese Yuan"),
-    COP("Colombian Peso"),
-    CRC("Costa Rican Col\u00f3n"),
-    CUC("Cuban Convertible Peso"),
-    CUP("Cuban Peso"),
-    CVE("Cape Verdean Escudo"),
-    CZK("Czech Republic Koruna"),
-    DJF("Djiboutian Franc"),
-    DKK("Danish Krone"),
-    DOP("Dominican Peso"),
-    DZD("Algerian Dinar"),
-    EGP("Egyptian Pound"),
-    ERN("Eritrean Nakfa"),
-    ETB("Ethiopian Birr"),
-    EUR("Euro"),
-    FJD("Fijian Dollar"),
-    FKP("Falkland Islands Pound"),
-    GBP("British Pound Sterling"),
-    GEL("Georgian Lari"),
-    GGP("Guernsey Pound"),
-    GHS("Ghanaian Cedi"),
-    GIP("Gibraltar Pound"),
-    GMD("Gambian Dalasi"),
-    GNF("Guinean Franc"),
-    GTQ("Guatemalan Quetzal"),
-    GYD("Guyanaese Dollar"),
-    HKD("Hong Kong Dollar"),
-    HNL("Honduran Lempira"),
-    HRK("Croatian Kuna"),
-    HTG("Haitian Gourde"),
-    HUF("Hungarian Forint"),
-    IDR("Indonesian Rupiah"),
-    ILS("Israeli New Sheqel"),
-    IMP("Manx pound"),
-    INR("Indian Rupee"),
-    IQD("Iraqi Dinar"),
-    IRR("Iranian Rial"),
-    ISK("Icelandic Kr\u00f3na"),
-    JEP("Jersey Pound"),
-    JMD("Jamaican Dollar"),
-    JOD("Jordanian Dinar"),
-    JPY("Japanese Yen"),
-    KES("Kenyan Shilling"),
-    KGS("Kyrgystani Som"),
-    KHR("Cambodian Riel"),
-    KMF("Comorian Franc"),
-    KPW("North Korean Won"),
-    KRW("South Korean Won"),
-    KWD("Kuwaiti Dinar"),
-    KYD("Cayman Islands Dollar"),
-    KZT("Kazakhstani Tenge"),
-    LAK("Laotian Kip"),
-    LBP("Lebanese Pound"),
-    LKR("Sri Lankan Rupee"),
-    LRD("Liberian Dollar"),
-    LSL("Lesotho Loti"),
-    LTL("Lithuanian Litas"),
-    LVL("Latvian Lats"),
-    LYD("Libyan Dinar"),
-    MAD("Moroccan Dirham"),
-    MDL("Moldovan Leu"),
-    MGA("Malagasy Ariary"),
-    MKD("Macedonian Denar"),
-    MMK("Myanma Kyat"),
-    MNT("Mongolian Tugrik"),
-    MOP("Macanese Pataca"),
-    MRO("Mauritanian Ouguiya"),
-    MUR("Mauritian Rupee"),
-    MVR("Maldivian Rufiyaa"),
-    MWK("Malawian Kwacha"),
-    MXN("Mexican Peso"),
-    MYR("Malaysian Ringgit"),
-    MZN("Mozambican Metical"),
-    NAD("Namibian Dollar"),
-    NGN("Nigerian Naira"),
-    NIO("Nicaraguan C\u00f3rdoba"),
-    NOK("Norwegian Krone"),
-    NPR("Nepalese Rupee"),
-    NZD("New Zealand Dollar"),
-    OMR("Omani Rial"),
-    PAB("Panamanian Balboa"),
-    PEN("Peruvian Nuevo Sol"),
-    PGK("Papua New Guinean Kina"),
-    PHP("Philippine Peso"),
-    PKR("Pakistani Rupee"),
-    PLN("Polish Zloty"),
-    PYG("Paraguayan Guarani"),
-    QAR("Qatari Rial"),
-    RON("Romanian Leu"),
-    RSD("Serbian Dinar"),
-    RUB("Russian Ruble"),
-    RWF("Rwandan Franc"),
-    SAR("Saudi Riyal"),
-    SBD("Solomon Islands Dollar"),
-    SCR("Seychellois Rupee"),
-    SDG("Sudanese Pound"),
-    SEK("Swedish Krona"),
-    SGD("Singapore Dollar"),
-    SHP("Saint Helena Pound"),
-    SLL("Sierra Leonean Leone"),
-    SOS("Somali Shilling"),
-    SRD("Surinamese Dollar"),
-    STD("S\u00e3o Tom\u00e9 and Pr\u00edncipe Dobra"),
-    SVC("Salvadoran Col\u00f3n"),
-    SYP("Syrian Pound"),
-    SZL("Swazi Lilangeni"),
-    THB("Thai Baht"),
-    TJS("Tajikistani Somoni"),
-    TMT("Turkmenistani Manat"),
-    TND("Tunisian Dinar"),
-    TOP("Tongan Pa\u02bbanga"),
-    TRY("Turkish Lira"),
-    TTD("Trinidad and Tobago Dollar"),
-    TWD("New Taiwan Dollar"),
-    TZS("Tanzanian Shilling"),
-    UAH("Ukrainian Hryvnia"),
-    UGX("Ugandan Shilling"),
-    USD("United States Dollar"),
-    UYU("Uruguayan Peso"),
-    UZS("Uzbekistan Som"),
-    VEF("Venezuelan Bol\u00edvar Fuerte"),
-    VND("Vietnamese Dong"),
-    VUV("Vanuatu Vatu"),
-    WST("Samoan Tala"),
-    XAF("CFA Franc BEAC"),
-    XAG("Silver (troy ounce)"),
-    XAU("Gold (troy ounce)"),
-    XCD("East Caribbean Dollar"),
-    XDR("Special Drawing Rights"),
-    XOF("CFA Franc BCEAO"),
-    XPF("CFP Franc"),
-    YER("Yemeni Rial"),
-    ZAR("South African Rand"),
-    ZMK("Zambian Kwacha (pre-2013)"),
-    ZMW("Zambian Kwacha"),
-    ZWL("Zimbabwean Dollar")
+    fun updateConvertFrom(newConvertFrom: Currency?) {
+        convertFrom.value = newConvertFrom
+    }
+
+    fun updateConvertTo(newConvertTo: Currency?) {
+        convertTo.value = newConvertTo
+    }
+
+    fun updateAmount(newAmount: String) {
+        amount.value = newAmount
+    }
+
+    fun getCurrencies() = listOf(
+        Currency(code = "AED", name = "United Arab Emirates Dirham"),
+        Currency(code = "AFN", name = "Afghan Afghani"),
+        Currency(code = "ALL", name = "Albanian Lek"),
+        Currency(code = "AMD", name = "Armenian Dram"),
+        Currency(code = "ANG", name = "Netherlands Antillean Guilder"),
+        Currency(code = "AOA", name = "Angolan Kwanza"),
+        Currency(code = "ARS", name = "Argentine Peso"),
+        Currency(code = "AUD", name = "Australian Dollar"),
+        Currency(code = "AWG", name = "Aruban Florin"),
+        Currency(code = "AZN", name = "Azerbaijani Manat"),
+        Currency(code = "BAM", name = "Bosnia-Herzegovina Convertible Mark"),
+        Currency(code = "BBD", name = "Barbadian Dollar"),
+        Currency(code = "BDT", name = "Bangladeshi Taka"),
+        Currency(code = "BGN", name = "Bulgarian Lev"),
+        Currency(code = "BHD", name = "Bahraini Dinar"),
+        Currency(code = "BIF", name = "Burundian Franc"),
+        Currency(code = "BMD", name = "Bermudan Dollar"),
+        Currency(code = "BND", name = "Brunei Dollar"),
+        Currency(code = "BOB", name = "Bolivian Boliviano"),
+        Currency(code = "BRL", name = "Brazilian Real"),
+        Currency(code = "BSD", name = "Bahamian Dollar"),
+        Currency(code = "BTC", name = "Bitcoin"),
+        Currency(code = "BTN", name = "Bhutanese Ngultrum"),
+        Currency(code = "BWP", name = "Botswanan Pula"),
+        Currency(code = "BYN", name = "New Belarusian Ruble"),
+        Currency(code = "BYR", name = "Belarusian Ruble"),
+        Currency(code = "BZD", name = "Belize Dollar"),
+        Currency(code = "CAD", name = "Canadian Dollar"),
+        Currency(code = "CDF", name = "Congolese Franc"),
+        Currency(code = "CHF", name = "Swiss Franc"),
+        Currency(code = "CLF", name = "Chilean Unit of Account (UF)"),
+        Currency(code = "CLP", name = "Chilean Peso"),
+        Currency(code = "CNY", name = "Chinese Yuan"),
+        Currency(code = "COP", name = "Colombian Peso"),
+        Currency(code = "CRC", name = "Costa Rican Col\u00f3n"),
+        Currency(code = "CUC", name = "Cuban Convertible Peso"),
+        Currency(code = "CUP", name = "Cuban Peso"),
+        Currency(code = "CVE", name = "Cape Verdean Escudo"),
+        Currency(code = "CZK", name = "Czech Republic Koruna"),
+        Currency(code = "DJF", name = "Djiboutian Franc"),
+        Currency(code = "DKK", name = "Danish Krone"),
+        Currency(code = "DOP", name = "Dominican Peso"),
+        Currency(code = "DZD", name = "Algerian Dinar"),
+        Currency(code = "EGP", name = "Egyptian Pound"),
+        Currency(code = "ERN", name = "Eritrean Nakfa"),
+        Currency(code = "ETB", name = "Ethiopian Birr"),
+        Currency(code = "EUR", name = "Euro"),
+        Currency(code = "FJD", name = "Fijian Dollar"),
+        Currency(code = "FKP", name = "Falkland Islands Pound"),
+        Currency(code = "GBP", name = "British Pound Sterling"),
+        Currency(code = "GEL", name = "Georgian Lari"),
+        Currency(code = "GGP", name = "Guernsey Pound"),
+        Currency(code = "GHS", name = "Ghanaian Cedi"),
+        Currency(code = "GIP", name = "Gibraltar Pound"),
+        Currency(code = "GMD", name = "Gambian Dalasi"),
+        Currency(code = "GNF", name = "Guinean Franc"),
+        Currency(code = "GTQ", name = "Guatemalan Quetzal"),
+        Currency(code = "GYD", name = "Guyanaese Dollar"),
+        Currency(code = "HKD", name = "Hong Kong Dollar"),
+        Currency(code = "HNL", name = "Honduran Lempira"),
+        Currency(code = "HRK", name = "Croatian Kuna"),
+        Currency(code = "HTG", name = "Haitian Gourde"),
+        Currency(code = "HUF", name = "Hungarian Forint"),
+        Currency(code = "IDR", name = "Indonesian Rupiah"),
+        Currency(code = "ILS", name = "Israeli New Sheqel"),
+        Currency(code = "IMP", name = "Manx pound"),
+        Currency(code = "INR", name = "Indian Rupee"),
+        Currency(code = "IQD", name = "Iraqi Dinar"),
+        Currency(code = "IRR", name = "Iranian Rial"),
+        Currency(code = "ISK", name = "Icelandic Kr\u00f3na"),
+        Currency(code = "JEP", name = "Jersey Pound"),
+        Currency(code = "JMD", name = "Jamaican Dollar"),
+        Currency(code = "JOD", name = "Jordanian Dinar"),
+        Currency(code = "JPY", name = "Japanese Yen"),
+        Currency(code = "KES", name = "Kenyan Shilling"),
+        Currency(code = "KGS", name = "Kyrgystani Som"),
+        Currency(code = "KHR", name = "Cambodian Riel"),
+        Currency(code = "KMF", name = "Comorian Franc"),
+        Currency(code = "KPW", name = "North Korean Won"),
+        Currency(code = "KRW", name = "South Korean Won"),
+        Currency(code = "KWD", name = "Kuwaiti Dinar"),
+        Currency(code = "KYD", name = "Cayman Islands Dollar"),
+        Currency(code = "KZT", name = "Kazakhstani Tenge"),
+        Currency(code = "LAK", name = "Laotian Kip"),
+        Currency(code = "LBP", name = "Lebanese Pound"),
+        Currency(code = "LKR", name = "Sri Lankan Rupee"),
+        Currency(code = "LRD", name = "Liberian Dollar"),
+        Currency(code = "LSL", name = "Lesotho Loti"),
+        Currency(code = "LTL", name = "Lithuanian Litas"),
+        Currency(code = "LVL", name = "Latvian Lats"),
+        Currency(code = "LYD", name = "Libyan Dinar"),
+        Currency(code = "MAD", name = "Moroccan Dirham"),
+        Currency(code = "MDL", name = "Moldovan Leu"),
+        Currency(code = "MGA", name = "Malagasy Ariary"),
+        Currency(code = "MKD", name = "Macedonian Denar"),
+        Currency(code = "MMK", name = "Myanma Kyat"),
+        Currency(code = "MNT", name = "Mongolian Tugrik"),
+        Currency(code = "MOP", name = "Macanese Pataca"),
+        Currency(code = "MRO", name = "Mauritanian Ouguiya"),
+        Currency(code = "MUR", name = "Mauritian Rupee"),
+        Currency(code = "MVR", name = "Maldivian Rufiyaa"),
+        Currency(code = "MWK", name = "Malawian Kwacha"),
+        Currency(code = "MXN", name = "Mexican Peso"),
+        Currency(code = "MYR", name = "Malaysian Ringgit"),
+        Currency(code = "MZN", name = "Mozambican Metical"),
+        Currency(code = "NAD", name = "Namibian Dollar"),
+        Currency(code = "NGN", name = "Nigerian Naira"),
+        Currency(code = "NIO", name = "Nicaraguan C\u00f3rdoba"),
+        Currency(code = "NOK", name = "Norwegian Krone"),
+        Currency(code = "NPR", name = "Nepalese Rupee"),
+        Currency(code = "NZD", name = "New Zealand Dollar"),
+        Currency(code = "OMR", name = "Omani Rial"),
+        Currency(code = "PAB", name = "Panamanian Balboa"),
+        Currency(code = "PEN", name = "Peruvian Nuevo Sol"),
+        Currency(code = "PGK", name = "Papua New Guinean Kina"),
+        Currency(code = "PHP", name = "Philippine Peso"),
+        Currency(code = "PKR", name = "Pakistani Rupee"),
+        Currency(code = "PLN", name = "Polish Zloty"),
+        Currency(code = "PYG", name = "Paraguayan Guarani"),
+        Currency(code = "QAR", name = "Qatari Rial"),
+        Currency(code = "RON", name = "Romanian Leu"),
+        Currency(code = "RSD", name = "Serbian Dinar"),
+        Currency(code = "RUB", name = "Russian Ruble"),
+        Currency(code = "RWF", name = "Rwandan Franc"),
+        Currency(code = "SAR", name = "Saudi Riyal"),
+        Currency(code = "SBD", name = "Solomon Islands Dollar"),
+        Currency(code = "SCR", name = "Seychellois Rupee"),
+        Currency(code = "SDG", name = "Sudanese Pound"),
+        Currency(code = "SEK", name = "Swedish Krona"),
+        Currency(code = "SGD", name = "Singapore Dollar"),
+        Currency(code = "SHP", name = "Saint Helena Pound"),
+        Currency(code = "SLL", name = "Sierra Leonean Leone"),
+        Currency(code = "SOS", name = "Somali Shilling"),
+        Currency(code = "SRD", name = "Surinamese Dollar"),
+        Currency(code = "STD", name = "S\u00e3o Tom\u00e9 and Pr\u00edncipe Dobra"),
+        Currency(code = "SVC", name = "Salvadoran Col\u00f3n"),
+        Currency(code = "SYP", name = "Syrian Pound"),
+        Currency(code = "SZL", name = "Swazi Lilangeni"),
+        Currency(code = "THB", name = "Thai Baht"),
+        Currency(code = "TJS", name = "Tajikistani Somoni"),
+        Currency(code = "TMT", name = "Turkmenistani Manat"),
+        Currency(code = "TND", name = "Tunisian Dinar"),
+        Currency(code = "TOP", name = "Tongan Pa\u02bbanga"),
+        Currency(code = "TRY", name = "Turkish Lira"),
+        Currency(code = "TTD", name = "Trinidad and Tobago Dollar"),
+        Currency(code = "TWD", name = "New Taiwan Dollar"),
+        Currency(code = "TZS", name = "Tanzanian Shilling"),
+        Currency(code = "UAH", name = "Ukrainian Hryvnia"),
+        Currency(code = "UGX", name = "Ugandan Shilling"),
+        Currency(code = "USD", name = "United States Dollar"),
+        Currency(code = "UYU", name = "Uruguayan Peso"),
+        Currency(code = "UZS", name = "Uzbekistan Som"),
+        Currency(code = "VEF", name = "Venezuelan Bol\u00edvar Fuerte"),
+        Currency(code = "VND", name = "Vietnamese Dong"),
+        Currency(code = "VUV", name = "Vanuatu Vatu"),
+        Currency(code = "WST", name = "Samoan Tala"),
+        Currency(code = "XAF", name = "CFA Franc BEAC"),
+        Currency(code = "XAG", name = "Silver (troy ounce)"),
+        Currency(code = "XAU", name = "Gold (troy ounce)"),
+        Currency(code = "XCD", name = "East Caribbean Dollar"),
+        Currency(code = "XDR", name = "Special Drawing Rights"),
+        Currency(code = "XOF", name = "CFA Franc BCEAO"),
+        Currency(code = "XPF", name = "CFP Franc"),
+        Currency(code = "YER", name = "Yemeni Rial"),
+        Currency(code = "ZAR", name = "South African Rand"),
+        Currency(code = "ZMK", name = "Zambian Kwacha (pre-2013)"),
+        Currency(code = "ZMW", name = "Zambian Kwacha"),
+        Currency(code = "ZWL", name = "Zimbabwean Dollar")
+    )
 }

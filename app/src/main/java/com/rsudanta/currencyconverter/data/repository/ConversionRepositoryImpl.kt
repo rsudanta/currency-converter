@@ -18,8 +18,8 @@ class ConversionRepositoryImpl @Inject constructor(
 ) : ConversionRepository {
 
     override suspend fun getConversion(
-        to: String,
-        from: String,
+        to: String?,
+        from: String?,
         amount: Double
     ): Flow<Resource<Convert>> {
         return flow {
@@ -40,7 +40,7 @@ class ConversionRepositoryImpl @Inject constructor(
                 }
             } catch (e: IOException) {
                 e.printStackTrace()
-                emit(Resource.Error(message = "No internet connection"))
+                emit(Resource.Error(message = "Unable to get response from server"))
                 emit(Resource.Loading(isLoading = false))
             }
         }

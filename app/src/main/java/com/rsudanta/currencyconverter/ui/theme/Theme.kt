@@ -13,7 +13,7 @@ private val DarkColorPalette = darkColors(
 )
 
 private val LightColorPalette = lightColors(
-    primary = Purple500,
+    primary = Primary,
     primaryVariant = Purple700,
     secondary = Teal200
 
@@ -33,7 +33,8 @@ fun CurrencyConverterTheme(
     content: @Composable () -> Unit
 ) {
     val colors = if (darkTheme) {
-        DarkColorPalette
+//        DarkColorPalette
+        LightColorPalette
     } else {
         LightColorPalette
     }

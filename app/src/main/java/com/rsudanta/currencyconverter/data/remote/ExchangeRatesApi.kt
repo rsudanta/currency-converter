@@ -13,8 +13,8 @@ interface ExchangeRatesApi {
     @Headers("apikey: $API_KEY")
     @GET("convert")
     suspend fun getConversion(
-        @Query("to") to: String,
-        @Query("from") from: String,
+        @Query("to") to: String?,
+        @Query("from") from: String?,
         @Query("amount") amount: Double
     ): Response<ConvertDto>
 
