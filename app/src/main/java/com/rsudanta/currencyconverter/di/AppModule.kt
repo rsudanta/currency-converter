@@ -2,14 +2,11 @@ package com.rsudanta.currencyconverter.di
 
 import android.content.Context
 import androidx.room.Room
-import com.rsudanta.currencyconverter.data.local.CurrencyCallback
 import com.rsudanta.currencyconverter.data.local.CurrencyConverterDatabase
-import com.rsudanta.currencyconverter.data.local.dao.CurrencyDao
+import com.rsudanta.currencyconverter.data.local.dao.HistoryDao
 import com.rsudanta.currencyconverter.data.remote.ExchangeRatesApi
 import com.rsudanta.currencyconverter.data.repository.ConversionRepositoryImpl
-import com.rsudanta.currencyconverter.data.repository.CurrencyRepositoryImpl
 import com.rsudanta.currencyconverter.domain.repository.ConversionRepository
-import com.rsudanta.currencyconverter.domain.repository.CurrencyRepository
 import com.rsudanta.currencyconverter.util.Constant
 import dagger.Module
 import dagger.Provides
@@ -18,7 +15,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import javax.inject.Provider
 import javax.inject.Singleton
 
 @Module
@@ -28,18 +24,18 @@ object AppModule {
     @Provides
     fun provideDatabase(
         @ApplicationContext context: Context,
-        provider: Provider<CurrencyDao>
     ): CurrencyConverterDatabase {
-        return Room.databaseBuilder(context, CurrencyConverterDatabase::class.java, Constant.DATABASE_NAME)
-            .addCallback(CurrencyCallback(provider))
-            .build()
+        return Room.databaseBuilder(
+            context,
+            CurrencyConverterDatabase::class.java,
+            Constant.DATABASE_NAME
+        ).build()
     }
-
 
     @Singleton
     @Provides
-    fun provideCurrencyDao(database: CurrencyConverterDatabase): CurrencyDao =
-        database.currencyDao
+    fun provideHistoryDao(database: CurrencyConverterDatabase): HistoryDao = database.historyDao
+
 
     @Provides
     @Singleton
@@ -57,9 +53,4 @@ object AppModule {
         return ConversionRepositoryImpl(api = api)
     }
 
-    @Provides
-    @Singleton
-    fun provideCurrencyRepository(db: CurrencyConverterDatabase): CurrencyRepository {
-        return CurrencyRepositoryImpl(db.currencyDao)
-    }
 }

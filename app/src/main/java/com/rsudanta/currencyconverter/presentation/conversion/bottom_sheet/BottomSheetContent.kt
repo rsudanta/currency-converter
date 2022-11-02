@@ -2,6 +2,7 @@ package com.rsudanta.currencyconverter.presentation.conversion.bottom_sheet
 
 import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,7 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,11 +25,14 @@ import androidx.compose.ui.unit.sp
 import com.rsudanta.currencyconverter.presentation.conversion.ConversionViewModel
 import com.rsudanta.currencyconverter.ui.theme.poppins
 import com.rsudanta.currencyconverter.ui.theme.textPrimary
+import com.rsudanta.currencyconverter.util.SearchAppBarState
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun CurrencyBottomSheet(
+fun CurrencyListBottomSheet(
     viewModel: ConversionViewModel,
     title: String,
     screenHeight: Dp,
@@ -36,10 +40,21 @@ fun CurrencyBottomSheet(
     onCloseClick: () -> Unit
 ) {
     val currencies = viewModel.getCurrencies()
+
     val from = viewModel.convertFrom.value
     val to = viewModel.convertTo.value
+    val searchAppBarState = viewModel.searchAppBarState.value
+    val searchCurrencyText = viewModel.searchCurrencyText.value
+
+    val scope = rememberCoroutineScope()
     BackHandler {
-        onBackPress()
+        if (searchCurrencyText.isNotEmpty()) {
+            viewModel.updateSearchCurrencyText(newSearchCurrencyText = "")
+        } else if (searchAppBarState != SearchAppBarState.CLOSED) {
+            viewModel.updateSearchAppBarState(SearchAppBarState.CLOSED)
+        } else {
+            onBackPress()
+        }
     }
     Scaffold(
         modifier = Modifier
@@ -47,9 +62,24 @@ fun CurrencyBottomSheet(
             .height(screenHeight),
         topBar = {
             ListAppBar(
-                searchAppBarState = SearchAppBarState.CLOSED,
+                searchAppBarState = searchAppBarState,
                 title = title,
-                onCloseClick = onCloseClick
+                onCloseClick = {
+                    if (searchCurrencyText.isNotEmpty()) {
+                        viewModel.updateSearchCurrencyText(newSearchCurrencyText = "")
+                    } else if (searchAppBarState != SearchAppBarState.CLOSED) {
+                        viewModel.updateSearchAppBarState(newSearchAppBarState = SearchAppBarState.CLOSED)
+                    } else {
+                        onCloseClick()
+                    }
+                },
+                onSearchClick = { newSearchAppBarState ->
+                    viewModel.updateSearchAppBarState(newSearchAppBarState = newSearchAppBarState)
+                },
+                searchCurrencyText = searchCurrencyText,
+                onSearchCurrencyTextChange = { searchCurrency ->
+                    viewModel.updateSearchCurrencyText(newSearchCurrencyText = searchCurrency)
+                }
             )
         }
     ) {
@@ -58,7 +88,7 @@ fun CurrencyBottomSheet(
                 .fillMaxWidth()
         ) {
             if (title == "From") {
-                from?.let {
+                AnimatedVisibility(visible = from?.name != null) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -70,7 +100,7 @@ fun CurrencyBottomSheet(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text = from.name,
+                            text = from?.name ?: "",
                             style = TextStyle(
                                 fontFamily = poppins,
                                 fontWeight = FontWeight.Medium,
@@ -84,9 +114,11 @@ fun CurrencyBottomSheet(
                             tint = Color.White
                         )
                     }
+
                 }
+
             } else {
-                to?.let {
+                AnimatedVisibility(visible = to?.name != null) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -98,7 +130,7 @@ fun CurrencyBottomSheet(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text = to.name,
+                            text = to?.name ?: "",
                             style = TextStyle(
                                 fontFamily = poppins,
                                 fontWeight = FontWeight.Medium,
@@ -113,50 +145,53 @@ fun CurrencyBottomSheet(
                         )
                     }
                 }
+
             }
+
             LazyColumn {
-                if (title == "From") {
-                    items(items = currencies.filter { it != from && it != to }) { currency ->
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { viewModel.updateConvertFrom(currency) }
-                                .padding(vertical = 12.dp, horizontal = 20.dp)
-                        ) {
-                            Text(
-                                text = currency.name,
-                                style = TextStyle(
-                                    fontFamily = poppins,
-                                    fontWeight = FontWeight.Medium,
-                                    fontSize = 14.sp,
-                                    color = MaterialTheme.colors.textPrimary
-                                )
+                items(items = currencies
+                    .filter { it != from && it != to }
+                    .sortedBy { it.name }) { currency ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                if (title == "From") {
+                                    scope.launch {
+                                        if (from != null) {
+                                            viewModel.updateConvertFrom(null)
+                                            delay(300L)
+                                        }
+                                        viewModel.updateConvertFrom(currency)
+                                    }
+                                } else {
+                                    scope.launch {
+                                        if (to != null) {
+                                            viewModel.updateConvertTo(null)
+                                            delay(300L)
+                                        }
+                                        viewModel.updateConvertTo(currency)
+                                    }
+                                }
+                            }
+                            .padding(vertical = 12.dp, horizontal = 20.dp)
+                    ) {
+                        Text(
+                            text = currency.name,
+                            style = TextStyle(
+                                fontFamily = poppins,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colors.textPrimary
                             )
-                        }
-                    }
-                } else {
-                    items(items = currencies.filter { it != from && it != to }) { currency ->
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { viewModel.updateConvertTo(currency) }
-                                .padding(vertical = 12.dp, horizontal = 20.dp)
-                        ) {
-                            Text(
-                                text = currency.name,
-                                style = TextStyle(
-                                    fontFamily = poppins,
-                                    fontWeight = FontWeight.Medium,
-                                    fontSize = 14.sp,
-                                    color = MaterialTheme.colors.textPrimary
-                                )
-                            )
-                        }
+                        )
                     }
                 }
             }
         }
     }
 }
+
+
 
 

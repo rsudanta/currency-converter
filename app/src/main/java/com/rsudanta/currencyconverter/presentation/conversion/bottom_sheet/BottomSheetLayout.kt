@@ -1,6 +1,10 @@
 package com.rsudanta.currencyconverter.presentation.conversion.bottom_sheet
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.rsudanta.currencyconverter.presentation.conversion.ConversionViewModel
@@ -17,7 +21,7 @@ fun BottomSheetLayout(
 
     when (currentScreen) {
         BottomSheetScreen.From
-        -> CurrencyBottomSheet(
+        -> CurrencyListBottomSheet(
             screenHeight = screenHeight,
             onBackPress = { onBackPress() },
             onCloseClick = onCloseClick,
@@ -25,7 +29,7 @@ fun BottomSheetLayout(
             title = "From"
         )
         BottomSheetScreen.To
-        -> CurrencyBottomSheet(
+        -> CurrencyListBottomSheet(
             screenHeight = screenHeight,
             onBackPress = { onBackPress() },
             onCloseClick = onCloseClick,

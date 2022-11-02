@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,6 +28,7 @@ import com.rsudanta.currencyconverter.presentation.conversion.bottom_sheet.Botto
 import com.rsudanta.currencyconverter.presentation.conversion.bottom_sheet.BottomSheetScreen
 import com.rsudanta.currencyconverter.ui.theme.poppins
 import com.rsudanta.currencyconverter.ui.theme.screenBackground
+import com.rsudanta.currencyconverter.util.SearchAppBarState
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPagerApi::class, ExperimentalMaterialApi::class)
@@ -36,20 +38,23 @@ fun MainLayout(viewModel: ConversionViewModel) {
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberBottomSheetScaffoldState()
     val conversionError = viewModel.conversionState.value.error
-    var currentBottomSheet: BottomSheetScreen? by remember { mutableStateOf(null) }
+    val currentBottomSheet = viewModel.currentBottomSheet.value
+
     val backgroundAlpha by animateFloatAsState(
         targetValue = if (scaffoldState.bottomSheetState.progress.to == BottomSheetValue.Expanded && scaffoldState.bottomSheetState.progress.fraction > 0)
             0.6f * scaffoldState.bottomSheetState.progress.fraction
         else (1f - scaffoldState.bottomSheetState.progress.fraction) * 0.6f
     )
     val closeSheet: () -> Unit = {
+        viewModel.updateSearchAppBarState(SearchAppBarState.CLOSED)
+        viewModel.updateSearchCurrencyText(newSearchCurrencyText = "")
         scope.launch {
             scaffoldState.bottomSheetState.collapse()
         }
     }
 
     val openSheet: (BottomSheetScreen) -> Unit = {
-        currentBottomSheet = it
+        viewModel.updateCurrentBottomSheet(it)
         scope.launch {
             scaffoldState.bottomSheetState.expand()
         }
@@ -57,8 +62,12 @@ fun MainLayout(viewModel: ConversionViewModel) {
 
     val activity = (LocalContext.current as? Activity)
 
-    LaunchedEffect(key1 = true) {
-        currentBottomSheet = BottomSheetScreen.From
+    LaunchedEffect(key1 = currentBottomSheet) {
+        if (currentBottomSheet == BottomSheetScreen.From) {
+            viewModel.updateCurrentBottomSheet(BottomSheetScreen.From)
+        } else {
+            viewModel.updateCurrentBottomSheet(BottomSheetScreen.To)
+        }
     }
 
     BottomSheetScaffold(
@@ -116,10 +125,14 @@ fun MainLayout(viewModel: ConversionViewModel) {
                             pagerState = pagerState,
                             coroutineScope = scope
                         )
-                        TabsContent(pagerState = pagerState, viewModel = viewModel,
+                        TabsContent(
+                            pagerState = pagerState,
+                            viewModel = viewModel,
                             onSelectCurrencyClick = { bottomSheetScreen ->
                                 openSheet(bottomSheetScreen)
-                            })
+                            },
+                            onConvertClick = { scaffoldState.snackbarHostState.currentSnackbarData?.dismiss() }
+                        )
                     }
                 }
             }

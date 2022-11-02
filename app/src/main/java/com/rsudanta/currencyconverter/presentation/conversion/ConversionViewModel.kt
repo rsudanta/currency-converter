@@ -1,14 +1,14 @@
 package com.rsudanta.currencyconverter.presentation.conversion
 
-import android.util.Log
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rsudanta.currencyconverter.domain.model.Currency
 import com.rsudanta.currencyconverter.domain.repository.ConversionRepository
-import com.rsudanta.currencyconverter.domain.repository.CurrencyRepository
-import com.rsudanta.currencyconverter.presentation.conversion.bottom_sheet.SearchAppBarState
+import com.rsudanta.currencyconverter.presentation.conversion.bottom_sheet.BottomSheetScreen
 import com.rsudanta.currencyconverter.util.Resource
+import com.rsudanta.currencyconverter.util.SearchAppBarState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -16,7 +16,6 @@ import javax.inject.Inject
 @HiltViewModel
 class ConversionViewModel @Inject constructor(
     private val conversionRepository: ConversionRepository,
-    private val currencyRepository: CurrencyRepository
 ) :
     ViewModel() {
     var conversionState = mutableStateOf(ConversionState())
@@ -33,6 +32,11 @@ class ConversionViewModel @Inject constructor(
 
     var amount = mutableStateOf("0")
         private set
+
+    var searchCurrencyText = mutableStateOf("")
+        private set
+
+    var currentBottomSheet: MutableState<BottomSheetScreen?> = mutableStateOf(null)
 
     fun getConversion() {
         viewModelScope.launch {
@@ -76,6 +80,18 @@ class ConversionViewModel @Inject constructor(
 
     fun updateAmount(newAmount: String) {
         amount.value = newAmount
+    }
+
+    fun updateCurrentBottomSheet(newCurrentBottomSheet: BottomSheetScreen) {
+        currentBottomSheet.value = newCurrentBottomSheet
+    }
+
+    fun updateSearchAppBarState(newSearchAppBarState: SearchAppBarState) {
+        searchAppBarState.value = newSearchAppBarState
+    }
+
+    fun updateSearchCurrencyText(newSearchCurrencyText: String) {
+        searchCurrencyText.value = newSearchCurrencyText
     }
 
     fun getCurrencies() = listOf(
@@ -247,5 +263,7 @@ class ConversionViewModel @Inject constructor(
         Currency(code = "ZMK", name = "Zambian Kwacha (pre-2013)"),
         Currency(code = "ZMW", name = "Zambian Kwacha"),
         Currency(code = "ZWL", name = "Zimbabwean Dollar")
-    )
+    ).filter { currency ->
+        currency.name.contains(searchCurrencyText.value, ignoreCase = true)
+    }
 }

@@ -13,48 +13,55 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.rsudanta.currencyconverter.ui.theme.textPrimary
-import com.rsudanta.currencyconverter.ui.theme.textSecondary
+import com.rsudanta.currencyconverter.util.SearchAppBarState
 
 @Composable
 fun ListAppBar(
     searchAppBarState: SearchAppBarState,
     title: String,
     onCloseClick: () -> Unit,
+    onSearchClick: (SearchAppBarState) -> Unit,
+    searchCurrencyText: String,
+    onSearchCurrencyTextChange: (String) -> Unit
 ) {
     when (searchAppBarState) {
         SearchAppBarState.CLOSED -> {
             DefaultListAppBar(
                 title = title,
-                onCloseClick = onCloseClick
+                onCloseClick = onCloseClick,
+                onSearchClick = onSearchClick
             )
         }
-        SearchAppBarState.OPENED -> {
+        else -> {
             SearchAppBar(
-                text = "",
-                onTextChange = {},
-                onCloseClick = { /*TODO*/ },
-                onSearchClick = {})
+                searchCurrencyText = searchCurrencyText,
+                onSearchCurrencyTextChange = onSearchCurrencyTextChange,
+                onCloseClick = onCloseClick,
+            )
         }
     }
 }
 
 @Composable
 fun SearchAppBar(
-    text: String,
-    onTextChange: (String) -> Unit,
+    searchCurrencyText: String,
+    onSearchCurrencyTextChange: (String) -> Unit,
     onCloseClick: () -> Unit,
-    onSearchClick: (String) -> Unit
 ) {
     val focusRequester = remember {
         FocusRequester()
     }
+
+    val localFocusManager = LocalFocusManager.current
 
     LaunchedEffect(key1 = Unit) {
         focusRequester.requestFocus()
@@ -69,19 +76,19 @@ fun SearchAppBar(
         TextField(modifier = Modifier
             .fillMaxWidth()
             .focusRequester(focusRequester),
-            value = text,
+            value = searchCurrencyText,
             onValueChange = {
-                onTextChange(it)
+                onSearchCurrencyTextChange(it)
             },
             placeholder = {
                 Text(
-                    text = "Enter country",
+                    text = "Enter currency",
                     color = Color.White,
                     modifier = Modifier.alpha(ContentAlpha.medium)
                 )
             },
             textStyle = TextStyle(
-                color = MaterialTheme.colors.textSecondary,
+                color = Color.White,
                 fontSize = MaterialTheme.typography.subtitle1.fontSize
             ),
             singleLine = true,
@@ -100,7 +107,7 @@ fun SearchAppBar(
             ),
             keyboardActions = KeyboardActions(
                 onSearch = {
-                    onSearchClick(text)
+                    localFocusManager.clearFocus()
                 }
             ),
             colors = TextFieldDefaults.textFieldColors(
@@ -115,15 +122,21 @@ fun SearchAppBar(
 }
 
 @Composable
-fun DefaultListAppBar(title: String, onCloseClick: () -> Unit) {
+fun DefaultListAppBar(
+    title: String,
+    onCloseClick: () -> Unit,
+    onSearchClick: (SearchAppBarState) -> Unit
+) {
     TopAppBar(
         title = {
             Text(text = title)
         },
         actions = {
-            ListAppBarActions(onCloseClick = onCloseClick, onSearchClick = {
-
-            })
+            ListAppBarActions(
+                onCloseClick = onCloseClick,
+                onSearchClick = {
+                    onSearchClick(SearchAppBarState.OPENED)
+                })
         },
         backgroundColor = MaterialTheme.colors.primary
     )
@@ -141,6 +154,7 @@ fun SearchAction(onSearchClick: () -> Unit) {
         Icon(
             imageVector = Icons.Filled.Search,
             contentDescription = "Search icon",
+            tint = Color.White
         )
     }
 }
@@ -151,11 +165,8 @@ fun CloseAction(onCloseClick: () -> Unit) {
         Icon(
             imageVector = Icons.Filled.Close,
             contentDescription = "Close icon",
+            tint = Color.White
         )
     }
 }
 
-enum class SearchAppBarState {
-    OPENED,
-    CLOSED
-}

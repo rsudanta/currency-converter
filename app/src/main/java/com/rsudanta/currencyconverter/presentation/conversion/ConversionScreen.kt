@@ -1,8 +1,12 @@
 package com.rsudanta.currencyconverter.presentation.conversion
 
 import DotsLoading
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -37,10 +41,12 @@ import com.rsudanta.currencyconverter.util.formatWithComma
 import com.rsudanta.currencyconverter.util.timestampToDate
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun ConversionScreen(
     viewModel: ConversionViewModel,
     onSelectCurrencyClick: (BottomSheetScreen) -> Unit,
+    onConvertClick: () -> Unit
 ) {
     val convertFrom = viewModel.convertFrom.value
     val convertTo = viewModel.convertTo.value
@@ -64,12 +70,18 @@ fun ConversionScreen(
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        if (conversionState.isLoading || conversionState.convert?.result != null) {
+        AnimatedVisibility(
+            visible = conversionState.isLoading || conversionState.convert?.result != null,
+            enter = scaleIn(),
+            exit = scaleOut()
+        ) {
             ConversionResultBox(
                 conversionState = conversionState,
                 onClearClick = {
                     viewModel.clearResult()
                 })
+        }
+        if (conversionState.isLoading || conversionState.convert?.result != null) {
             Spacer(modifier = Modifier.height(16.dp))
         }
         CurrencyListButton(
@@ -105,6 +117,7 @@ fun ConversionScreen(
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
+                onConvertClick()
                 viewModel.getConversion()
                 viewModel.updateAmount(newAmount = "0")
                 scope.launch {

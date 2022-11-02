@@ -83,12 +83,14 @@ fun TabsContent(
     pagerState: PagerState,
     viewModel: ConversionViewModel,
     onSelectCurrencyClick: (BottomSheetScreen) -> Unit,
+    onConvertClick: () -> Unit
 ) {
     HorizontalPager(state = pagerState, count = Pages.values().size) { page ->
         when (page) {
             0 -> ConversionScreen(
                 viewModel = viewModel,
-                onSelectCurrencyClick = onSelectCurrencyClick
+                onSelectCurrencyClick = onSelectCurrencyClick,
+                onConvertClick = onConvertClick
             )
             1 -> TabContentScreen(data = "Test")
             2 -> TabContentScreen(data = "Test")
