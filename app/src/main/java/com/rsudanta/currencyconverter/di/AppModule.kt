@@ -6,7 +6,9 @@ import com.rsudanta.currencyconverter.data.local.CurrencyConverterDatabase
 import com.rsudanta.currencyconverter.data.local.dao.HistoryDao
 import com.rsudanta.currencyconverter.data.remote.ExchangeRatesApi
 import com.rsudanta.currencyconverter.data.repository.ConversionRepositoryImpl
+import com.rsudanta.currencyconverter.data.repository.HistoryRepositoryImpl
 import com.rsudanta.currencyconverter.domain.repository.ConversionRepository
+import com.rsudanta.currencyconverter.domain.repository.HistoryRepository
 import com.rsudanta.currencyconverter.util.Constant
 import dagger.Module
 import dagger.Provides
@@ -49,8 +51,16 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideConversionRepository(api: ExchangeRatesApi): ConversionRepository {
-        return ConversionRepositoryImpl(api = api)
+    fun provideConversionRepository(
+        @ApplicationContext context: Context,
+        api: ExchangeRatesApi
+    ): ConversionRepository {
+        return ConversionRepositoryImpl(context = context, api = api)
     }
 
+    @Provides
+    @Singleton
+    fun provideHistoryRepository(historyDao: HistoryDao): HistoryRepository {
+        return HistoryRepositoryImpl(dao = historyDao)
+    }
 }

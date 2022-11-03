@@ -159,18 +159,20 @@ fun CurrencyListBottomSheet(
                                 if (title == "From") {
                                     scope.launch {
                                         if (from != null) {
-                                            viewModel.updateConvertFrom(null)
+                                            viewModel.updateConvertFrom(newConvertFrom = null)
                                             delay(300L)
                                         }
                                         viewModel.updateConvertFrom(currency)
+                                        viewModel.persistConvertFromState(currency)
                                     }
                                 } else {
                                     scope.launch {
                                         if (to != null) {
-                                            viewModel.updateConvertTo(null)
+                                            viewModel.updateConvertTo(newConvertTo = null)
                                             delay(300L)
                                         }
                                         viewModel.updateConvertTo(currency)
+                                        viewModel.persistConvertToState(currency)
                                     }
                                 }
                             }

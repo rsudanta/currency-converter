@@ -9,6 +9,7 @@ data class History(
     val id: Int? = null,
     val convertFrom: String,
     val convertTo: String,
+    val amount: Double,
     val result: Double,
     val lastUpdate: Int
 )

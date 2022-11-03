@@ -27,6 +27,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.text.isDigitsOnly
@@ -39,6 +40,7 @@ import com.rsudanta.currencyconverter.ui.theme.textSecondary
 import com.rsudanta.currencyconverter.util.NumberCommaTransformation
 import com.rsudanta.currencyconverter.util.formatWithComma
 import com.rsudanta.currencyconverter.util.timestampToDate
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -52,6 +54,7 @@ fun ConversionScreen(
     val convertTo = viewModel.convertTo.value
     val amount = viewModel.amount.value
     val conversionState = viewModel.conversionState.value
+    val isLoadDataPreferences = viewModel.isLoadDataPreferences.value
 
     val scrollState = rememberScrollState()
     var isSwapClick by remember { mutableStateOf(false) }
@@ -86,7 +89,7 @@ fun ConversionScreen(
         }
         CurrencyListButton(
             label = "From",
-            selectedCurrency = convertFrom?.name,
+            selectedCurrency = if (isLoadDataPreferences) "..." else convertFrom?.name,
             onSelectCurrencyClick = {
                 onSelectCurrencyClick(BottomSheetScreen.From)
             })
@@ -106,7 +109,7 @@ fun ConversionScreen(
         }
         CurrencyListButton(
             label = "To",
-            selectedCurrency = convertTo?.name,
+            selectedCurrency = if (isLoadDataPreferences) "..." else convertTo?.name,
             onSelectCurrencyClick = {
                 onSelectCurrencyClick(BottomSheetScreen.To)
             })
@@ -207,7 +210,8 @@ fun CurrencyListButton(
             Text(
                 modifier = Modifier
                     .padding(8.dp),
-                text = if (selectedCurrency.isNullOrEmpty()) "Select Currency" else selectedCurrency,
+                text = selectedCurrency ?: "Select Currency",
+                textAlign = TextAlign.Center,
                 fontFamily = poppins,
                 fontWeight = FontWeight.Normal,
                 fontSize = 16.sp,

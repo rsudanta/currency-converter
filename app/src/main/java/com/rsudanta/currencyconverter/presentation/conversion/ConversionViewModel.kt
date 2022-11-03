@@ -5,19 +5,24 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rsudanta.currencyconverter.domain.model.Currency
+import com.rsudanta.currencyconverter.domain.model.History
 import com.rsudanta.currencyconverter.domain.repository.ConversionRepository
+import com.rsudanta.currencyconverter.domain.repository.HistoryRepository
 import com.rsudanta.currencyconverter.presentation.conversion.bottom_sheet.BottomSheetScreen
 import com.rsudanta.currencyconverter.util.Resource
 import com.rsudanta.currencyconverter.util.SearchAppBarState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ConversionViewModel @Inject constructor(
     private val conversionRepository: ConversionRepository,
+    private val historyRepository: HistoryRepository
 ) :
     ViewModel() {
+
     var conversionState = mutableStateOf(ConversionState())
         private set
 
@@ -37,6 +42,15 @@ class ConversionViewModel @Inject constructor(
         private set
 
     var currentBottomSheet: MutableState<BottomSheetScreen?> = mutableStateOf(null)
+        private set
+
+    var isLoadDataPreferences = mutableStateOf(false)
+        private set
+
+    init {
+        readConvertFromState()
+        readConvertToState()
+    }
 
     fun getConversion() {
         viewModelScope.launch {
@@ -47,15 +61,25 @@ class ConversionViewModel @Inject constructor(
             ).collect { result ->
                 when (result) {
                     is Resource.Success -> {
-                        result.data?.let {
-                            conversionState.value.convert = it
+                        result.data?.let { convert ->
+                            conversionState.value.convert = convert
                             conversionState.value = conversionState.value.copy(error = "")
+                            val history = History(
+                                convertFrom = convert.query.from,
+                                convertTo = convert.query.to,
+                                result = convert.result,
+                                amount = convert.query.amount.toDouble(),
+                                lastUpdate = convert.info.timestamp
+                            )
+                            historyRepository.insertHistory(history = history)
                         }
                     }
                     is Resource.Error -> {
                         conversionState.value = ConversionState()
                         conversionState.value =
-                            result.message?.let { conversionState.value.copy(error = it) }!!
+                            result.message?.let { message ->
+                                conversionState.value.copy(error = message)
+                            }!!
                     }
                     is Resource.Loading -> {
                         conversionState.value =
@@ -93,6 +117,55 @@ class ConversionViewModel @Inject constructor(
     fun updateSearchCurrencyText(newSearchCurrencyText: String) {
         searchCurrencyText.value = newSearchCurrencyText
     }
+
+    fun persistConvertFromState(currency: Currency) {
+        viewModelScope.launch {
+            conversionRepository.persistConvertFromState(currency)
+        }
+    }
+
+    fun persistConvertToState(currency: Currency) {
+        viewModelScope.launch {
+            conversionRepository.persistConvertToState(currency)
+        }
+    }
+
+    private fun readConvertFromState() {
+        isLoadDataPreferences.value = true
+        try {
+            viewModelScope.launch {
+                conversionRepository.readConvertFromState()
+                    .map { currencyCode ->
+                        getCurrencies().find { it.code == currencyCode }
+                    }.collect { currency ->
+                        convertFrom.value = currency
+                        isLoadDataPreferences.value = false
+                    }
+            }
+        } catch (e: Exception) {
+            isLoadDataPreferences.value = false
+            e.stackTrace
+        }
+    }
+
+    private fun readConvertToState() {
+        isLoadDataPreferences.value = true
+        try {
+            viewModelScope.launch {
+                conversionRepository.readConvertToState()
+                    .map { currencyCode ->
+                        getCurrencies().find { it.code == currencyCode }
+                    }.collect { currency ->
+                        convertTo.value = currency
+                        isLoadDataPreferences.value = false
+                    }
+            }
+        } catch (e: Exception) {
+            isLoadDataPreferences.value = false
+            e.stackTrace
+        }
+    }
+
 
     fun getCurrencies() = listOf(
         Currency(code = "AED", name = "United Arab Emirates Dirham"),
