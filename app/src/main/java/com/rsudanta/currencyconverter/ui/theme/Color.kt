@@ -14,6 +14,9 @@ val Colors.screenBackground: Color
     @Composable
     get() = Color(0xFFF4F4F4)
 
+val Colors.historyBackground: Color
+    @Composable
+    get() = Color(0xFFA8A7A7)
 
 val Colors.textPrimary: Color
     @Composable

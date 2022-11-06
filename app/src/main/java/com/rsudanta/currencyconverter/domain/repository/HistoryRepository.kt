@@ -9,4 +9,6 @@ interface HistoryRepository {
     suspend fun insertHistory(history: History)
 
     suspend fun deleteHistory(history: History)
+
+    suspend fun deleteAllHistories()
 }

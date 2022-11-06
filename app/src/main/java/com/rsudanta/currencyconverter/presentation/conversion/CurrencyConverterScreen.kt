@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.text.isDigitsOnly
 import com.rsudanta.currencyconverter.R
-import com.rsudanta.currencyconverter.presentation.conversion.bottom_sheet.BottomSheetScreen
+import com.rsudanta.currencyconverter.presentation.main.bottom_sheet.BottomSheetScreen
 import com.rsudanta.currencyconverter.ui.theme.poppins
 import com.rsudanta.currencyconverter.ui.theme.textFieldBackground
 import com.rsudanta.currencyconverter.ui.theme.textPrimary
@@ -40,7 +40,6 @@ import com.rsudanta.currencyconverter.ui.theme.textSecondary
 import com.rsudanta.currencyconverter.util.NumberCommaTransformation
 import com.rsudanta.currencyconverter.util.formatWithComma
 import com.rsudanta.currencyconverter.util.timestampToDate
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -89,7 +88,7 @@ fun ConversionScreen(
         }
         CurrencyListButton(
             label = "From",
-            selectedCurrency = if (isLoadDataPreferences) "..." else convertFrom?.name,
+            selectedCurrency = if (isLoadDataPreferences) "Loading..." else convertFrom?.name,
             onSelectCurrencyClick = {
                 onSelectCurrencyClick(BottomSheetScreen.From)
             })
@@ -109,7 +108,7 @@ fun ConversionScreen(
         }
         CurrencyListButton(
             label = "To",
-            selectedCurrency = if (isLoadDataPreferences) "..." else convertTo?.name,
+            selectedCurrency = if (isLoadDataPreferences) "Loading..." else convertTo?.name,
             onSelectCurrencyClick = {
                 onSelectCurrencyClick(BottomSheetScreen.To)
             })

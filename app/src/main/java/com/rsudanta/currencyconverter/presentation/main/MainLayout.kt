@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,8 +23,9 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.rememberPagerState
 import com.rsudanta.currencyconverter.R
 import com.rsudanta.currencyconverter.presentation.conversion.ConversionViewModel
-import com.rsudanta.currencyconverter.presentation.conversion.bottom_sheet.BottomSheetLayout
-import com.rsudanta.currencyconverter.presentation.conversion.bottom_sheet.BottomSheetScreen
+import com.rsudanta.currencyconverter.presentation.history.HistoryViewModel
+import com.rsudanta.currencyconverter.presentation.main.bottom_sheet.BottomSheetLayout
+import com.rsudanta.currencyconverter.presentation.main.bottom_sheet.BottomSheetScreen
 import com.rsudanta.currencyconverter.ui.theme.poppins
 import com.rsudanta.currencyconverter.ui.theme.screenBackground
 import com.rsudanta.currencyconverter.util.SearchAppBarState
@@ -33,12 +33,12 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPagerApi::class, ExperimentalMaterialApi::class)
 @Composable
-fun MainLayout(viewModel: ConversionViewModel) {
+fun MainLayout(conversionViewModel: ConversionViewModel, historyViewModel: HistoryViewModel) {
     val pagerState = rememberPagerState()
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberBottomSheetScaffoldState()
-    val conversionError = viewModel.conversionState.value.error
-    val currentBottomSheet = viewModel.currentBottomSheet.value
+    val conversionError = conversionViewModel.conversionState.value.error
+    val currentBottomSheet = conversionViewModel.currentBottomSheet.value
 
     val backgroundAlpha by animateFloatAsState(
         targetValue = if (scaffoldState.bottomSheetState.progress.to == BottomSheetValue.Expanded && scaffoldState.bottomSheetState.progress.fraction > 0)
@@ -46,15 +46,15 @@ fun MainLayout(viewModel: ConversionViewModel) {
         else (1f - scaffoldState.bottomSheetState.progress.fraction) * 0.6f
     )
     val closeSheet: () -> Unit = {
-        viewModel.updateSearchAppBarState(SearchAppBarState.CLOSED)
-        viewModel.updateSearchCurrencyText(newSearchCurrencyText = "")
+        conversionViewModel.updateSearchAppBarState(SearchAppBarState.CLOSED)
+        conversionViewModel.updateSearchCurrencyText(newSearchCurrencyText = "")
         scope.launch {
             scaffoldState.bottomSheetState.collapse()
         }
     }
 
     val openSheet: (BottomSheetScreen) -> Unit = {
-        viewModel.updateCurrentBottomSheet(it)
+        conversionViewModel.updateCurrentBottomSheet(it)
         scope.launch {
             scaffoldState.bottomSheetState.expand()
         }
@@ -64,9 +64,9 @@ fun MainLayout(viewModel: ConversionViewModel) {
 
     LaunchedEffect(key1 = currentBottomSheet) {
         if (currentBottomSheet == BottomSheetScreen.From) {
-            viewModel.updateCurrentBottomSheet(BottomSheetScreen.From)
+            conversionViewModel.updateCurrentBottomSheet(BottomSheetScreen.From)
         } else {
-            viewModel.updateCurrentBottomSheet(BottomSheetScreen.To)
+            conversionViewModel.updateCurrentBottomSheet(BottomSheetScreen.To)
         }
     }
 
@@ -86,7 +86,7 @@ fun MainLayout(viewModel: ConversionViewModel) {
                         }
                     },
                     onCloseClick = { closeSheet() },
-                    viewModel = viewModel
+                    viewModel = conversionViewModel
                 )
             }
         },
@@ -127,7 +127,8 @@ fun MainLayout(viewModel: ConversionViewModel) {
                         )
                         TabsContent(
                             pagerState = pagerState,
-                            viewModel = viewModel,
+                            conversionViewModel = conversionViewModel,
+                            historyViewModel = historyViewModel,
                             onSelectCurrencyClick = { bottomSheetScreen ->
                                 openSheet(bottomSheetScreen)
                             },
@@ -155,7 +156,7 @@ fun MainLayout(viewModel: ConversionViewModel) {
         }
         DisplaySnackBar(
             scaffoldState = scaffoldState,
-            onComplete = { viewModel.clearResult() },
+            onComplete = { conversionViewModel.clearResult() },
             errorMessage = conversionError
         )
     }

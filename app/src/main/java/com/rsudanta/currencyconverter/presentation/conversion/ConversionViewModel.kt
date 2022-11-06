@@ -1,5 +1,6 @@
 package com.rsudanta.currencyconverter.presentation.conversion
 
+import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -8,7 +9,7 @@ import com.rsudanta.currencyconverter.domain.model.Currency
 import com.rsudanta.currencyconverter.domain.model.History
 import com.rsudanta.currencyconverter.domain.repository.ConversionRepository
 import com.rsudanta.currencyconverter.domain.repository.HistoryRepository
-import com.rsudanta.currencyconverter.presentation.conversion.bottom_sheet.BottomSheetScreen
+import com.rsudanta.currencyconverter.presentation.main.bottom_sheet.BottomSheetScreen
 import com.rsudanta.currencyconverter.util.Resource
 import com.rsudanta.currencyconverter.util.SearchAppBarState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -69,7 +70,8 @@ class ConversionViewModel @Inject constructor(
                                 convertTo = convert.query.to,
                                 result = convert.result,
                                 amount = convert.query.amount.toDouble(),
-                                lastUpdate = convert.info.timestamp
+                                lastUpdate = convert.info.timestamp,
+                                createdAt = (System.currentTimeMillis() / 1000).toInt()
                             )
                             historyRepository.insertHistory(history = history)
                         }
@@ -87,6 +89,8 @@ class ConversionViewModel @Inject constructor(
                     }
                 }
             }
+            convertTo.value?.let { persistConvertToState(it) }
+            convertFrom.value?.let { persistConvertFromState(it) }
         }
     }
 
@@ -118,13 +122,13 @@ class ConversionViewModel @Inject constructor(
         searchCurrencyText.value = newSearchCurrencyText
     }
 
-    fun persistConvertFromState(currency: Currency) {
+    private fun persistConvertFromState(currency: Currency) {
         viewModelScope.launch {
             conversionRepository.persistConvertFromState(currency)
         }
     }
 
-    fun persistConvertToState(currency: Currency) {
+    private fun persistConvertToState(currency: Currency) {
         viewModelScope.launch {
             conversionRepository.persistConvertToState(currency)
         }

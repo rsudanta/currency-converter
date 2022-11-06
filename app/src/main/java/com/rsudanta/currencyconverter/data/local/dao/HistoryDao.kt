@@ -13,5 +13,8 @@ interface HistoryDao {
     suspend fun insertHistory(history: History)
 
     @Delete
-    suspend fun deleteHistoryById(history: History)
+    suspend fun deleteHistory(history: History)
+
+    @Query("DELETE FROM history")
+    suspend fun deleteAllHistories()
 }

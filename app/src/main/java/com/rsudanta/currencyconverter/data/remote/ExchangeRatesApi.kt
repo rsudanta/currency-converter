@@ -19,6 +19,6 @@ interface ExchangeRatesApi {
     ): Response<ConvertDto>
 
     companion object {
-        const val API_KEY = "NyBQuQva8OXjzM0hwJsVefXIaxSW2yEV"
+        const val API_KEY = "aPXFx0CoV6yUOu6ZdZhP0ZxHA9SuYCjY"
     }
 }

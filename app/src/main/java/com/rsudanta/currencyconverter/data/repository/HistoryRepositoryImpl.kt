@@ -17,7 +17,11 @@ class HistoryRepositoryImpl @Inject constructor(private val dao: HistoryDao) :
     }
 
     override suspend fun deleteHistory(history: History) {
-        dao.deleteHistoryById(history = history)
+        dao.deleteHistory(history = history)
+    }
+
+    override suspend fun deleteAllHistories() {
+        dao.deleteAllHistories()
     }
 
 }

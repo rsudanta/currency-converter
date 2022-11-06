@@ -11,5 +11,6 @@ data class History(
     val convertTo: String,
     val amount: Double,
     val result: Double,
-    val lastUpdate: Int
+    val lastUpdate: Int,
+    val createdAt: Int
 )

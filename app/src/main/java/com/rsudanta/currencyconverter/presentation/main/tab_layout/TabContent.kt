@@ -21,7 +21,10 @@ import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.pagerTabIndicatorOffset
 import com.rsudanta.currencyconverter.presentation.conversion.ConversionScreen
 import com.rsudanta.currencyconverter.presentation.conversion.ConversionViewModel
-import com.rsudanta.currencyconverter.presentation.conversion.bottom_sheet.BottomSheetScreen
+import com.rsudanta.currencyconverter.presentation.history.HistoryScreen
+import com.rsudanta.currencyconverter.presentation.history.HistoryViewModel
+import com.rsudanta.currencyconverter.presentation.main.bottom_sheet.BottomSheetScreen
+import com.rsudanta.currencyconverter.presentation.main.tab_layout.Pages
 import com.rsudanta.currencyconverter.ui.theme.poppins
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -81,19 +84,20 @@ fun Tabs(pagerState: PagerState, coroutineScope: CoroutineScope) {
 @Composable
 fun TabsContent(
     pagerState: PagerState,
-    viewModel: ConversionViewModel,
+    conversionViewModel: ConversionViewModel,
+    historyViewModel: HistoryViewModel,
     onSelectCurrencyClick: (BottomSheetScreen) -> Unit,
     onConvertClick: () -> Unit
 ) {
     HorizontalPager(state = pagerState, count = Pages.values().size) { page ->
         when (page) {
             0 -> ConversionScreen(
-                viewModel = viewModel,
+                viewModel = conversionViewModel,
                 onSelectCurrencyClick = onSelectCurrencyClick,
                 onConvertClick = onConvertClick
             )
             1 -> TabContentScreen(data = "Test")
-            2 -> TabContentScreen(data = "Test")
+            2 -> HistoryScreen(viewModel = historyViewModel)
         }
     }
 }

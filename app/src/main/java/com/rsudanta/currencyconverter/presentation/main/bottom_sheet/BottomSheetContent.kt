@@ -1,4 +1,4 @@
-package com.rsudanta.currencyconverter.presentation.conversion.bottom_sheet
+package com.rsudanta.currencyconverter.presentation.main.bottom_sheet
 
 import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
@@ -147,7 +147,25 @@ fun CurrencyListBottomSheet(
                 }
 
             }
-
+            if (currencies.isEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top,
+                ) {
+                    Text(
+                        text = "No results available",
+                        style = TextStyle(
+                            fontFamily = poppins,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colors.textPrimary,
+                        )
+                    )
+                }
+            }
             LazyColumn {
                 items(items = currencies
                     .filter { it != from && it != to }
@@ -163,7 +181,6 @@ fun CurrencyListBottomSheet(
                                             delay(300L)
                                         }
                                         viewModel.updateConvertFrom(currency)
-                                        viewModel.persistConvertFromState(currency)
                                     }
                                 } else {
                                     scope.launch {
@@ -172,7 +189,6 @@ fun CurrencyListBottomSheet(
                                             delay(300L)
                                         }
                                         viewModel.updateConvertTo(currency)
-                                        viewModel.persistConvertToState(currency)
                                     }
                                 }
                             }
