@@ -10,10 +10,10 @@ import java.util.*
 class NumberCommaTransformation : VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
         return TransformedText(
-            text = AnnotatedString(text.text.toLongOrNull().formatWithComma()),
+            text = AnnotatedString(text.text.toDoubleOrNull().formatWithComma()),
             offsetMapping = object : OffsetMapping {
                 override fun originalToTransformed(offset: Int): Int {
-                    return text.text.toLongOrNull().formatWithComma().length
+                    return text.text.toDoubleOrNull().formatWithComma().length
                 }
 
                 override fun transformedToOriginal(offset: Int): Int {
@@ -24,10 +24,9 @@ class NumberCommaTransformation : VisualTransformation {
     }
 }
 
-fun Long?.formatWithComma(): String {
+fun Double?.formatWithComma(): String {
     val formatter = NumberFormat.getNumberInstance(Locale.getDefault())
-    formatter.minimumFractionDigits = 2
-    formatter.maximumFractionDigits = 2
+    formatter.maximumFractionDigits = 4
 
     return formatter.format(this ?: 0)
 }

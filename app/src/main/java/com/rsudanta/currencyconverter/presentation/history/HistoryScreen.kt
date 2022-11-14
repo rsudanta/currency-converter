@@ -116,9 +116,9 @@ fun HistoryScreen(viewModel: HistoryViewModel) {
                         ) {
                             Text(
                                 text = "${
-                                    history.amount.toLong().formatWithComma()
+                                    history.amount.formatWithComma()
                                 } ${history.convertFrom} =  ${
-                                    history.result.toLong().formatWithComma()
+                                    history.result.formatWithComma()
                                 } ${history.convertTo}",
                                 style = TextStyle(
                                     fontFamily = poppins,

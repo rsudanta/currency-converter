@@ -21,6 +21,8 @@ import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.pagerTabIndicatorOffset
 import com.rsudanta.currencyconverter.presentation.conversion.ConversionScreen
 import com.rsudanta.currencyconverter.presentation.conversion.ConversionViewModel
+import com.rsudanta.currencyconverter.presentation.exchange_rates.ExchangeRatesScreen
+import com.rsudanta.currencyconverter.presentation.exchange_rates.ExchangeRatesViewModel
 import com.rsudanta.currencyconverter.presentation.history.HistoryScreen
 import com.rsudanta.currencyconverter.presentation.history.HistoryViewModel
 import com.rsudanta.currencyconverter.presentation.main.bottom_sheet.BottomSheetScreen
@@ -49,7 +51,6 @@ fun Tabs(pagerState: PagerState, coroutineScope: CoroutineScope) {
         divider = {}
     ) {
         val pages = Pages.values()
-
         pages.forEachIndexed { index, page ->
             Tab(
                 modifier = Modifier
@@ -86,6 +87,7 @@ fun TabsContent(
     pagerState: PagerState,
     conversionViewModel: ConversionViewModel,
     historyViewModel: HistoryViewModel,
+    exchangeRatesViewModel: ExchangeRatesViewModel,
     onSelectCurrencyClick: (BottomSheetScreen) -> Unit,
     onConvertClick: () -> Unit
 ) {
@@ -96,22 +98,8 @@ fun TabsContent(
                 onSelectCurrencyClick = onSelectCurrencyClick,
                 onConvertClick = onConvertClick
             )
-            1 -> TabContentScreen(data = "Test")
+            1 -> ExchangeRatesScreen(exchangeRatesViewModel = exchangeRatesViewModel)
             2 -> HistoryScreen(viewModel = historyViewModel)
         }
-    }
-}
-
-@Composable
-fun TabContentScreen(data: String) {
-    Card(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        Text(
-            text = data,
-            style = MaterialTheme.typography.h5,
-            textAlign = TextAlign.Center
-        )
     }
 }

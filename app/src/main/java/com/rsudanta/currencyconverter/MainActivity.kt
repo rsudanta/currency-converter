@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import com.rsudanta.currencyconverter.presentation.conversion.ConversionViewModel
+import com.rsudanta.currencyconverter.presentation.exchange_rates.ExchangeRatesViewModel
 import com.rsudanta.currencyconverter.presentation.history.HistoryViewModel
 import com.rsudanta.currencyconverter.presentation.main.MainLayout
 import com.rsudanta.currencyconverter.ui.theme.CurrencyConverterTheme
@@ -16,11 +17,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val conversionViewModel by viewModels<ConversionViewModel>()
         val historyViewModel by viewModels<HistoryViewModel>()
+        val exchangeRatesViewModel by viewModels<ExchangeRatesViewModel>()
         setContent {
             CurrencyConverterTheme {
                 MainLayout(
                     conversionViewModel = conversionViewModel,
-                    historyViewModel = historyViewModel
+                    historyViewModel = historyViewModel,
+                    exchangeRatesViewModel = exchangeRatesViewModel
                 )
             }
         }

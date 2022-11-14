@@ -86,7 +86,7 @@ fun ConversionScreen(
         if (conversionState.isLoading || conversionState.convert?.result != null) {
             Spacer(modifier = Modifier.height(16.dp))
         }
-        CurrencyListButton(
+        SelectCurrencyButton(
             label = "From",
             selectedCurrency = if (isLoadDataPreferences) "Loading..." else convertFrom?.name,
             onSelectCurrencyClick = {
@@ -106,7 +106,7 @@ fun ConversionScreen(
                 tint = MaterialTheme.colors.primary
             )
         }
-        CurrencyListButton(
+        SelectCurrencyButton(
             label = "To",
             selectedCurrency = if (isLoadDataPreferences) "Loading..." else convertTo?.name,
             onSelectCurrencyClick = {
@@ -185,7 +185,7 @@ fun AmountTextField(amount: String, onAmountChange: (String) -> Unit) {
 }
 
 @Composable
-fun CurrencyListButton(
+fun SelectCurrencyButton(
     label: String,
     selectedCurrency: String?,
     onSelectCurrencyClick: () -> Unit
@@ -266,10 +266,10 @@ fun ConversionResultBox(conversionState: ConversionState, onClearClick: () -> Un
                     }
                     Text(
                         text = "${
-                            conversionState.convert?.query?.amount?.toLong().formatWithComma()
+                            conversionState.convert?.query?.amount?.toDouble().formatWithComma()
                         } " +
                                 "${conversionState.convert?.query?.from} = " +
-                                "${result.toLong().formatWithComma()} " +
+                                "${result.formatWithComma()} " +
                                 "${conversionState.convert?.query?.to}",
                         style = TextStyle(
                             fontFamily = poppins,

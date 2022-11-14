@@ -23,6 +23,7 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.rememberPagerState
 import com.rsudanta.currencyconverter.R
 import com.rsudanta.currencyconverter.presentation.conversion.ConversionViewModel
+import com.rsudanta.currencyconverter.presentation.exchange_rates.ExchangeRatesViewModel
 import com.rsudanta.currencyconverter.presentation.history.HistoryViewModel
 import com.rsudanta.currencyconverter.presentation.main.bottom_sheet.BottomSheetLayout
 import com.rsudanta.currencyconverter.presentation.main.bottom_sheet.BottomSheetScreen
@@ -33,7 +34,11 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPagerApi::class, ExperimentalMaterialApi::class)
 @Composable
-fun MainLayout(conversionViewModel: ConversionViewModel, historyViewModel: HistoryViewModel) {
+fun MainLayout(
+    conversionViewModel: ConversionViewModel,
+    historyViewModel: HistoryViewModel,
+    exchangeRatesViewModel: ExchangeRatesViewModel
+) {
     val pagerState = rememberPagerState()
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberBottomSheetScaffoldState()
@@ -129,10 +134,11 @@ fun MainLayout(conversionViewModel: ConversionViewModel, historyViewModel: Histo
                             pagerState = pagerState,
                             conversionViewModel = conversionViewModel,
                             historyViewModel = historyViewModel,
+                            exchangeRatesViewModel = exchangeRatesViewModel,
                             onSelectCurrencyClick = { bottomSheetScreen ->
                                 openSheet(bottomSheetScreen)
                             },
-                            onConvertClick = { scaffoldState.snackbarHostState.currentSnackbarData?.dismiss() }
+                            onConvertClick = { scaffoldState.snackbarHostState.currentSnackbarData?.dismiss() },
                         )
                     }
                 }

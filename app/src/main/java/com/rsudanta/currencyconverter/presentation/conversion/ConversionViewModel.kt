@@ -62,15 +62,15 @@ class ConversionViewModel @Inject constructor(
             ).collect { result ->
                 when (result) {
                     is Resource.Success -> {
-                        result.data?.let { convert ->
-                            conversionState.value.convert = convert
+                        result.data?.let { response ->
+                            conversionState.value.convert = response
                             conversionState.value = conversionState.value.copy(error = "")
                             val history = History(
-                                convertFrom = convert.query.from,
-                                convertTo = convert.query.to,
-                                result = convert.result,
-                                amount = convert.query.amount.toDouble(),
-                                lastUpdate = convert.info.timestamp,
+                                convertFrom = response.query.from,
+                                convertTo = response.query.to,
+                                result = response.result,
+                                amount = response.query.amount.toDouble(),
+                                lastUpdate = response.info.timestamp,
                                 createdAt = (System.currentTimeMillis() / 1000).toInt()
                             )
                             historyRepository.insertHistory(history = history)
