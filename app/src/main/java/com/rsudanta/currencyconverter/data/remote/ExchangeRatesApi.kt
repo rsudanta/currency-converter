@@ -1,7 +1,7 @@
 package com.rsudanta.currencyconverter.data.remote
 
 import com.rsudanta.currencyconverter.data.remote.dto.ConvertDto
-import com.rsudanta.currencyconverter.data.remote.dto.ExchangeRateDto
+import com.rsudanta.currencyconverter.data.remote.dto.ExchangeRatesDto
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Headers
@@ -22,9 +22,15 @@ interface ExchangeRatesApi {
     @GET("latest")
     suspend fun getExchangeRates(
         @Query("base") base: String,
-        @Query("symbols") to: String
-    ): Response<ExchangeRateDto>
+        @Query("symbols") symbols: String
+    ): Response<ExchangeRatesDto>
 
+    @Headers("apikey: $API_KEY")
+    @GET("latest")
+    suspend fun getExchangeRatesMtoZ(
+        @Query("base") base: String,
+        @Query("symbols") symbols: String
+    ): Response<ExchangeRatesDto>
 
     companion object {
         const val API_KEY = "aPXFx0CoV6yUOu6ZdZhP0ZxHA9SuYCjY"

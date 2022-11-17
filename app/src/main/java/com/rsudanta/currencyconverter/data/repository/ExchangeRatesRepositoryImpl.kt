@@ -15,14 +15,14 @@ import javax.inject.Inject
 class ExchangeRatesRepositoryImpl @Inject constructor(
     private val api: ExchangeRatesApi
 ) : ExchangeRatesRepository {
-    override suspend fun getExchangeRatesList(
+    override suspend fun getExchangeRates(
         base: String,
         symbols: String
     ): Flow<Resource<ExchangeRates>> {
         return flow {
             emit(Resource.Loading(isLoading = true))
             try {
-                val response = api.getExchangeRates(base = base, to = symbols)
+                val response = api.getExchangeRates(base = base, symbols = symbols)
                 if (response.isSuccessful) {
                     emit(Resource.Success(data = response.body()?.toExchangeRate()))
                     emit(Resource.Loading(isLoading = false))

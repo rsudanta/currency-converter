@@ -5,9 +5,8 @@ import com.rsudanta.currencyconverter.util.Resource
 import kotlinx.coroutines.flow.Flow
 
 interface ExchangeRatesRepository {
-    suspend fun getExchangeRatesList(
+    suspend fun getExchangeRates(
         base: String,
         symbols: String
     ): Flow<Resource<ExchangeRates>>
-
 }

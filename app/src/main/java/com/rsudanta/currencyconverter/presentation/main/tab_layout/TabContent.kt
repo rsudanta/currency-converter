@@ -19,6 +19,7 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.pagerTabIndicatorOffset
+import com.rsudanta.currencyconverter.presentation.SharedViewModel
 import com.rsudanta.currencyconverter.presentation.conversion.ConversionScreen
 import com.rsudanta.currencyconverter.presentation.conversion.ConversionViewModel
 import com.rsudanta.currencyconverter.presentation.exchange_rates.ExchangeRatesScreen
@@ -87,6 +88,7 @@ fun TabsContent(
     pagerState: PagerState,
     conversionViewModel: ConversionViewModel,
     historyViewModel: HistoryViewModel,
+    sharedViewModel: SharedViewModel,
     exchangeRatesViewModel: ExchangeRatesViewModel,
     onSelectCurrencyClick: (BottomSheetScreen) -> Unit,
     onConvertClick: () -> Unit
@@ -98,7 +100,11 @@ fun TabsContent(
                 onSelectCurrencyClick = onSelectCurrencyClick,
                 onConvertClick = onConvertClick
             )
-            1 -> ExchangeRatesScreen(exchangeRatesViewModel = exchangeRatesViewModel)
+            1 -> ExchangeRatesScreen(
+                exchangeRatesViewModel = exchangeRatesViewModel,
+                onSelectCurrencyClick = onSelectCurrencyClick,
+                sharedViewModel = sharedViewModel
+            )
             2 -> HistoryScreen(viewModel = historyViewModel)
         }
     }

@@ -11,6 +11,7 @@ import com.rsudanta.currencyconverter.data.repository.HistoryRepositoryImpl
 import com.rsudanta.currencyconverter.domain.repository.ConversionRepository
 import com.rsudanta.currencyconverter.domain.repository.ExchangeRatesRepository
 import com.rsudanta.currencyconverter.domain.repository.HistoryRepository
+import com.rsudanta.currencyconverter.presentation.SharedViewModel
 import com.rsudanta.currencyconverter.util.Constant
 import dagger.Module
 import dagger.Provides
@@ -72,5 +73,11 @@ object AppModule {
     @Singleton
     fun provideHistoryRepository(historyDao: HistoryDao): HistoryRepository {
         return HistoryRepositoryImpl(dao = historyDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSharedViewModel(): SharedViewModel {
+        return SharedViewModel()
     }
 }

@@ -22,7 +22,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.rsudanta.currencyconverter.presentation.SharedViewModel
 import com.rsudanta.currencyconverter.presentation.conversion.ConversionViewModel
+import com.rsudanta.currencyconverter.presentation.exchange_rates.ExchangeRatesViewModel
 import com.rsudanta.currencyconverter.ui.theme.poppins
 import com.rsudanta.currencyconverter.ui.theme.textPrimary
 import com.rsudanta.currencyconverter.util.SearchAppBarState
@@ -32,26 +34,27 @@ import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun CurrencyListBottomSheet(
-    viewModel: ConversionViewModel,
+fun ConverterCurrencyListBottomSheet(
+    conversionViewModel: ConversionViewModel,
+    sharedViewModel: SharedViewModel,
     title: String,
     screenHeight: Dp,
     onBackPress: () -> Unit,
     onCloseClick: () -> Unit
 ) {
-    val currencies = viewModel.getCurrencies()
+    val currencies = sharedViewModel.getCurrencies()
 
-    val from = viewModel.convertFrom.value
-    val to = viewModel.convertTo.value
-    val searchAppBarState = viewModel.searchAppBarState.value
-    val searchCurrencyText = viewModel.searchCurrencyText.value
+    val from = conversionViewModel.convertFrom.value
+    val to = conversionViewModel.convertTo.value
+    val searchAppBarState = sharedViewModel.searchAppBarState.value
+    val searchCurrencyText = sharedViewModel.searchCurrencyText.value
 
     val scope = rememberCoroutineScope()
     BackHandler {
         if (searchCurrencyText.isNotEmpty()) {
-            viewModel.updateSearchCurrencyText(newSearchCurrencyText = "")
+            sharedViewModel.updateSearchCurrencyText(newSearchCurrencyText = "")
         } else if (searchAppBarState != SearchAppBarState.CLOSED) {
-            viewModel.updateSearchAppBarState(SearchAppBarState.CLOSED)
+            sharedViewModel.updateSearchAppBarState(SearchAppBarState.CLOSED)
         } else {
             onBackPress()
         }
@@ -66,19 +69,19 @@ fun CurrencyListBottomSheet(
                 title = title,
                 onCloseClick = {
                     if (searchCurrencyText.isNotEmpty()) {
-                        viewModel.updateSearchCurrencyText(newSearchCurrencyText = "")
+                        sharedViewModel.updateSearchCurrencyText(newSearchCurrencyText = "")
                     } else if (searchAppBarState != SearchAppBarState.CLOSED) {
-                        viewModel.updateSearchAppBarState(newSearchAppBarState = SearchAppBarState.CLOSED)
+                        sharedViewModel.updateSearchAppBarState(newSearchAppBarState = SearchAppBarState.CLOSED)
                     } else {
                         onCloseClick()
                     }
                 },
                 onSearchClick = { newSearchAppBarState ->
-                    viewModel.updateSearchAppBarState(newSearchAppBarState = newSearchAppBarState)
+                    sharedViewModel.updateSearchAppBarState(newSearchAppBarState = newSearchAppBarState)
                 },
                 searchCurrencyText = searchCurrencyText,
                 onSearchCurrencyTextChange = { searchCurrency ->
-                    viewModel.updateSearchCurrencyText(newSearchCurrencyText = searchCurrency)
+                    sharedViewModel.updateSearchCurrencyText(newSearchCurrencyText = searchCurrency)
                 }
             )
         }
@@ -177,19 +180,205 @@ fun CurrencyListBottomSheet(
                                 if (title == "From") {
                                     scope.launch {
                                         if (from != null) {
-                                            viewModel.updateConvertFrom(newConvertFrom = null)
+                                            conversionViewModel.updateConvertFrom(newConvertFrom = null)
                                             delay(300L)
                                         }
-                                        viewModel.updateConvertFrom(currency)
+                                        conversionViewModel.updateConvertFrom(currency)
                                     }
                                 } else {
                                     scope.launch {
                                         if (to != null) {
-                                            viewModel.updateConvertTo(newConvertTo = null)
+                                            conversionViewModel.updateConvertTo(newConvertTo = null)
                                             delay(300L)
                                         }
-                                        viewModel.updateConvertTo(currency)
+                                        conversionViewModel.updateConvertTo(currency)
                                     }
+                                }
+                            }
+                            .padding(vertical = 12.dp, horizontal = 20.dp)
+                    ) {
+                        Text(
+                            text = currency.name,
+                            style = TextStyle(
+                                fontFamily = poppins,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colors.textPrimary
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
+@Composable
+fun ExchangeRatesCurrencyListBottomSheet(
+    sharedViewModel: SharedViewModel,
+    exchangeRatesViewModel: ExchangeRatesViewModel,
+    title: String,
+    screenHeight: Dp,
+    onBackPress: () -> Unit,
+    onCloseClick: () -> Unit,
+) {
+    val currencies = sharedViewModel.getCurrencies()
+
+    val base = exchangeRatesViewModel.base.value
+    val to = exchangeRatesViewModel.to
+    val searchAppBarState = sharedViewModel.searchAppBarState.value
+    val searchCurrencyText = sharedViewModel.searchCurrencyText.value
+    val currentSelectedIndex = sharedViewModel.currentSelectedExchangeRatesIndex.value
+
+    val scope = rememberCoroutineScope()
+    BackHandler {
+        if (searchCurrencyText.isNotEmpty()) {
+            sharedViewModel.updateSearchCurrencyText(newSearchCurrencyText = "")
+        } else if (searchAppBarState != SearchAppBarState.CLOSED) {
+            sharedViewModel.updateSearchAppBarState(SearchAppBarState.CLOSED)
+        } else {
+            onBackPress()
+        }
+    }
+    Scaffold(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(screenHeight),
+        topBar = {
+            ListAppBar(
+                searchAppBarState = searchAppBarState,
+                title = title,
+                onCloseClick = {
+                    if (searchCurrencyText.isNotEmpty()) {
+                        sharedViewModel.updateSearchCurrencyText(newSearchCurrencyText = "")
+                    } else if (searchAppBarState != SearchAppBarState.CLOSED) {
+                        sharedViewModel.updateSearchAppBarState(newSearchAppBarState = SearchAppBarState.CLOSED)
+                    } else {
+                        onCloseClick()
+                    }
+                },
+                onSearchClick = { newSearchAppBarState ->
+                    sharedViewModel.updateSearchAppBarState(newSearchAppBarState = newSearchAppBarState)
+                },
+                searchCurrencyText = searchCurrencyText,
+                onSearchCurrencyTextChange = { searchCurrency ->
+                    sharedViewModel.updateSearchCurrencyText(newSearchCurrencyText = searchCurrency)
+                }
+            )
+        }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            if (title == "Base") {
+                AnimatedVisibility(visible = base?.name != null) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp, horizontal = 12.dp)
+                            .clip(RoundedCornerShape(30.dp))
+                            .background(MaterialTheme.colors.primary)
+                            .padding(vertical = 4.dp, horizontal = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = base?.name ?: "",
+                            style = TextStyle(
+                                fontFamily = poppins,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 14.sp,
+                                color = Color.White
+                            )
+                        )
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Check Icon",
+                            tint = Color.White
+                        )
+                    }
+                }
+            } else {
+                AnimatedVisibility(visible = currentSelectedIndex != -1) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp, horizontal = 12.dp)
+                            .clip(RoundedCornerShape(30.dp))
+                            .background(MaterialTheme.colors.primary)
+                            .padding(vertical = 4.dp, horizontal = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        if (currentSelectedIndex != -1) {
+                            Text(
+                                text = to[currentSelectedIndex]?.name ?: "",
+                                style = TextStyle(
+                                    fontFamily = poppins,
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 14.sp,
+                                    color = Color.White
+                                )
+                            )
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "Check Icon",
+                                tint = Color.White
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (currencies.isEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top,
+                ) {
+                    Text(
+                        text = "No results available",
+                        style = TextStyle(
+                            fontFamily = poppins,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colors.textPrimary,
+                        )
+                    )
+                }
+            }
+            LazyColumn {
+                items(items = currencies
+                    .filter { if (title == "Base") it != base else !to.contains(it) }
+                    .sortedBy { it.name }) { currency ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                if (title == "Base") {
+                                    scope.launch {
+                                        if (base != null) {
+                                            exchangeRatesViewModel.updateBase(newBase = null)
+                                            delay(300L)
+                                        }
+                                        exchangeRatesViewModel.updateBase(currency)
+                                        exchangeRatesViewModel.getExchangeRates()
+                                    }
+                                } else {
+                                    if (currentSelectedIndex == -1) {
+                                        exchangeRatesViewModel.addTo(currency)
+                                    } else {
+                                        exchangeRatesViewModel.updateTo(
+                                            currentSelectedIndex,
+                                            currency
+                                        )
+                                    }
+                                    exchangeRatesViewModel.getExchangeRates()
+                                    onCloseClick()
                                 }
                             }
                             .padding(vertical = 12.dp, horizontal = 20.dp)

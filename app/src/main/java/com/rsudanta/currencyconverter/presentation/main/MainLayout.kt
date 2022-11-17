@@ -8,7 +8,10 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.rememberPagerState
 import com.rsudanta.currencyconverter.R
+import com.rsudanta.currencyconverter.presentation.SharedViewModel
 import com.rsudanta.currencyconverter.presentation.conversion.ConversionViewModel
 import com.rsudanta.currencyconverter.presentation.exchange_rates.ExchangeRatesViewModel
 import com.rsudanta.currencyconverter.presentation.history.HistoryViewModel
@@ -37,13 +41,14 @@ import kotlinx.coroutines.launch
 fun MainLayout(
     conversionViewModel: ConversionViewModel,
     historyViewModel: HistoryViewModel,
+    sharedViewModel: SharedViewModel,
     exchangeRatesViewModel: ExchangeRatesViewModel
 ) {
     val pagerState = rememberPagerState()
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberBottomSheetScaffoldState()
     val conversionError = conversionViewModel.conversionState.value.error
-    val currentBottomSheet = conversionViewModel.currentBottomSheet.value
+    val currentBottomSheet = sharedViewModel.currentBottomSheet.value
 
     val backgroundAlpha by animateFloatAsState(
         targetValue = if (scaffoldState.bottomSheetState.progress.to == BottomSheetValue.Expanded && scaffoldState.bottomSheetState.progress.fraction > 0)
@@ -51,15 +56,16 @@ fun MainLayout(
         else (1f - scaffoldState.bottomSheetState.progress.fraction) * 0.6f
     )
     val closeSheet: () -> Unit = {
-        conversionViewModel.updateSearchAppBarState(SearchAppBarState.CLOSED)
-        conversionViewModel.updateSearchCurrencyText(newSearchCurrencyText = "")
+        sharedViewModel.updateSearchAppBarState(SearchAppBarState.CLOSED)
+        sharedViewModel.updateSearchCurrencyText(newSearchCurrencyText = "")
+        sharedViewModel.updateCurrentSelectedExchangeRatesIndex(newIndex = -1)
         scope.launch {
             scaffoldState.bottomSheetState.collapse()
         }
     }
 
     val openSheet: (BottomSheetScreen) -> Unit = {
-        conversionViewModel.updateCurrentBottomSheet(it)
+        sharedViewModel.updateCurrentBottomSheet(newCurrentBottomSheet = it)
         scope.launch {
             scaffoldState.bottomSheetState.expand()
         }
@@ -68,11 +74,17 @@ fun MainLayout(
     val activity = (LocalContext.current as? Activity)
 
     LaunchedEffect(key1 = currentBottomSheet) {
-        if (currentBottomSheet == BottomSheetScreen.From) {
-            conversionViewModel.updateCurrentBottomSheet(BottomSheetScreen.From)
-        } else {
-            conversionViewModel.updateCurrentBottomSheet(BottomSheetScreen.To)
+        when (currentBottomSheet) {
+            BottomSheetScreen.From ->
+                sharedViewModel.updateCurrentBottomSheet(BottomSheetScreen.From)
+            BottomSheetScreen.To ->
+                sharedViewModel.updateCurrentBottomSheet(BottomSheetScreen.To)
+            BottomSheetScreen.BaseExchangeRates ->
+                sharedViewModel.updateCurrentBottomSheet(BottomSheetScreen.BaseExchangeRates)
+            else ->
+                sharedViewModel.updateCurrentBottomSheet(BottomSheetScreen.ToExchangeRates)
         }
+
     }
 
     BottomSheetScaffold(
@@ -91,7 +103,9 @@ fun MainLayout(
                         }
                     },
                     onCloseClick = { closeSheet() },
-                    viewModel = conversionViewModel
+                    conversionViewModel = conversionViewModel,
+                    sharedViewModel = sharedViewModel,
+                    exchangeRatesViewModel = exchangeRatesViewModel
                 )
             }
         },
@@ -134,6 +148,7 @@ fun MainLayout(
                             pagerState = pagerState,
                             conversionViewModel = conversionViewModel,
                             historyViewModel = historyViewModel,
+                            sharedViewModel = sharedViewModel,
                             exchangeRatesViewModel = exchangeRatesViewModel,
                             onSelectCurrencyClick = { bottomSheetScreen ->
                                 openSheet(bottomSheetScreen)
