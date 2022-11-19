@@ -1,8 +1,17 @@
 package com.rsudanta.currencyconverter.presentation.common
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.rsudanta.currencyconverter.ui.theme.poppins
+import com.rsudanta.currencyconverter.ui.theme.textPrimary
+import com.rsudanta.currencyconverter.ui.theme.textSecondary
 
 @Composable
 fun DisplayAlertDialog(
@@ -17,30 +26,50 @@ fun DisplayAlertDialog(
             title = {
                 Text(
                     text = title,
-                    fontSize = MaterialTheme.typography.h5.fontSize,
-                    fontWeight = FontWeight.Bold
+                    style = TextStyle(
+                        fontFamily = poppins,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colors.textPrimary
+                    )
                 )
             },
             text = {
                 Text(
                     text = message,
-                    fontSize = MaterialTheme.typography.subtitle1.fontSize,
-                    fontWeight = FontWeight.Normal
+                    style = TextStyle(
+                        fontFamily = poppins,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colors.textSecondary
+                    )
                 )
             },
             confirmButton = {
-                Button(onClick = {
-                    onYesClicked()
-                    closeDialog()
-                }) {
-                    Text(text = "Yes")
+                Button(modifier = Modifier.padding(bottom = 12.dp, end = 12.dp),
+                    onClick = {
+                        onYesClicked()
+                        closeDialog()
+                    }) {
+                    Text(
+                        text = "Yes", style = TextStyle(
+                            fontFamily = poppins,
+                            fontSize = 14.sp,
+                            color = Color.White
+                        )
+                    )
                 }
             },
             dismissButton = {
                 OutlinedButton(onClick = {
                     closeDialog()
                 }) {
-                    Text(text = "No")
+                    Text(
+                        text = "No", style = TextStyle(
+                            fontFamily = poppins,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colors.textSecondary
+                        )
+                    )
                 }
             },
             onDismissRequest = { closeDialog() }

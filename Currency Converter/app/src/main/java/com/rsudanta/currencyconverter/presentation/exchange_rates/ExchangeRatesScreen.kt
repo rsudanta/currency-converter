@@ -1,13 +1,16 @@
 package com.rsudanta.currencyconverter.presentation.exchange_rates
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -17,12 +20,15 @@ import androidx.compose.ui.unit.sp
 import com.rsudanta.currencyconverter.R
 import com.rsudanta.currencyconverter.domain.model.Currency
 import com.rsudanta.currencyconverter.presentation.SharedViewModel
+import com.rsudanta.currencyconverter.presentation.common.DisplayAlertDialog
 import com.rsudanta.currencyconverter.presentation.main.bottom_sheet.BottomSheetScreen
 import com.rsudanta.currencyconverter.ui.theme.poppins
 import com.rsudanta.currencyconverter.ui.theme.textFieldBackground
 import com.rsudanta.currencyconverter.ui.theme.textPrimary
 import com.rsudanta.currencyconverter.ui.theme.textSecondary
 import com.rsudanta.currencyconverter.util.formatWithComma
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun ExchangeRatesScreen(
@@ -33,47 +39,67 @@ fun ExchangeRatesScreen(
     val base = exchangeRatesViewModel.base.value
     val to = exchangeRatesViewModel.to
     val result = exchangeRatesViewModel.exchangeRatesState.value
+    val currentIndexSelected = sharedViewModel.currentSelectedExchangeRatesIndex.value
+    var openDialog by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        SelectExchangeCurrencyButton(
-            label = "Base",
-            selectedCurrency = base,
-            onSelectCurrencyClick = { onSelectCurrencyClick(BottomSheetScreen.BaseExchangeRates) }
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Icon(
-            painter = painterResource(id = R.drawable.ic_convert),
-            contentDescription = "Convert Icon",
-            tint = MaterialTheme.colors.textPrimary
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        LazyColumn {
-            itemsIndexed(to) { index, item ->
-                SelectExchangeCurrencyButton(
-                    selectedCurrency = item,
-                    onSelectCurrencyClick = {
-                        sharedViewModel.updateCurrentSelectedExchangeRatesIndex(index)
-                        onSelectCurrencyClick(BottomSheetScreen.ToExchangeRates)
-                    },
-                    result = if (result.isLoading) "..." else
-                        result.exchangeRates?.rates?.get(index)?.rate.formatWithComma()
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
+    Surface {
+        if (currentIndexSelected != -1) {
+            DisplayAlertDialog(
+                title = "Remove ${to[currentIndexSelected]?.name}",
+                message = "Are you sure you want to remove ${to[currentIndexSelected]?.name}?",
+                openDialog = openDialog,
+                closeDialog = { openDialog = false },
+                onYesClicked = {
+
+                }
+            )
         }
-        SelectExchangeCurrencyButton(
-            selectedCurrency = null,
-            onSelectCurrencyClick = {
-                sharedViewModel.updateCurrentSelectedExchangeRatesIndex(newIndex = -1)
-                onSelectCurrencyClick(BottomSheetScreen.ToExchangeRates)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            SelectExchangeCurrencyButton(
+                label = "Base",
+                selectedCurrency = base,
+                onSelectCurrencyClick = { onSelectCurrencyClick(BottomSheetScreen.BaseExchangeRates) }
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Icon(
+                painter = painterResource(id = R.drawable.ic_convert),
+                contentDescription = "Convert Icon",
+                tint = MaterialTheme.colors.textPrimary
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            LazyColumn {
+                itemsIndexed(to) { index, item ->
+                    SelectExchangeCurrencyButton(
+                        selectedCurrency = item,
+                        onSelectCurrencyClick = {
+                            sharedViewModel.updateCurrentSelectedExchangeRatesIndex(index)
+                            onSelectCurrencyClick(BottomSheetScreen.ToExchangeRates)
+                        },
+                        result = if (result.isLoading) "..." else
+                            result.exchangeRates?.rates?.get(index)?.rate.formatWithComma(),
+                        onLongPress = {
+                            sharedViewModel.updateCurrentSelectedExchangeRatesIndex(index)
+                            openDialog = true
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
             }
-        )
+            SelectExchangeCurrencyButton(
+                selectedCurrency = null,
+                onSelectCurrencyClick = {
+                    sharedViewModel.updateCurrentSelectedExchangeRatesIndex(newIndex = -1)
+                    onSelectCurrencyClick(BottomSheetScreen.ToExchangeRates)
+                }
+            )
+        }
     }
+
 }
 
 @Composable
@@ -81,7 +107,8 @@ fun SelectExchangeCurrencyButton(
     label: String? = null,
     selectedCurrency: Currency?,
     onSelectCurrencyClick: () -> Unit,
-    result: String = ""
+    result: String = "",
+    onLongPress: () -> Unit = {}
 ) {
     Column {
         label?.let {
@@ -98,7 +125,12 @@ fun SelectExchangeCurrencyButton(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { onSelectCurrencyClick() },
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onLongPress = { onLongPress() },
+                        onTap = { onSelectCurrencyClick() }
+                    )
+                },
             backgroundColor = MaterialTheme.colors.textFieldBackground
         ) {
             Row(

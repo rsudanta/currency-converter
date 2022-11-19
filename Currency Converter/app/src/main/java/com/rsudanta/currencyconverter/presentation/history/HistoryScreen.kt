@@ -36,12 +36,11 @@ fun HistoryScreen(viewModel: HistoryViewModel) {
     var openDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     var itemAppeared by remember { mutableStateOf(false) }
-    LaunchedEffect(key1 = true) {
-        itemAppeared = true
-    }
 
     LaunchedEffect(key1 = true) {
         viewModel.getHistories()
+        delay(300L)
+        itemAppeared = true
     }
 
     Surface(modifier = Modifier.fillMaxSize()) {
@@ -131,6 +130,7 @@ fun HistoryScreen(viewModel: HistoryViewModel) {
                                 scope.launch {
                                     delay(400)
                                     viewModel.deleteHistory(history = history)
+                                    itemAppeared = true
                                 }
                             }) {
                                 Icon(
