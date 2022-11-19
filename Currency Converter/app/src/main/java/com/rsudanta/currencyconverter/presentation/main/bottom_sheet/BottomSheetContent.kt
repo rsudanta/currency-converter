@@ -370,9 +370,9 @@ fun ExchangeRatesCurrencyListBottomSheet(
                                     }
                                 } else {
                                     if (currentSelectedIndex == -1) {
-                                        exchangeRatesViewModel.addTo(currency)
+                                        exchangeRatesViewModel.addToCurrencyList(currency)
                                     } else {
-                                        exchangeRatesViewModel.updateTo(
+                                        exchangeRatesViewModel.updateToCurrency(
                                             currentSelectedIndex,
                                             currency
                                         )

@@ -50,7 +50,8 @@ fun ExchangeRatesScreen(
                 openDialog = openDialog,
                 closeDialog = { openDialog = false },
                 onYesClicked = {
-
+                    exchangeRatesViewModel.removeFromToCurrencyList(index = currentIndexSelected)
+                    sharedViewModel.updateCurrentSelectedExchangeRatesIndex(newIndex = -1)
                 }
             )
         }

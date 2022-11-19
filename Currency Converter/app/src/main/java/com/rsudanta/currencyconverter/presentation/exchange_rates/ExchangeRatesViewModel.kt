@@ -60,11 +60,17 @@ class ExchangeRatesViewModel @Inject constructor(private val repository: Exchang
         base.value = newBase
     }
 
-    fun addTo(newTo: Currency) {
+    fun addToCurrencyList(newTo: Currency) {
         to.add(newTo)
     }
 
-    fun updateTo(index: Int, newTo: Currency) {
+    fun removeFromToCurrencyList(index: Int) {
+        to.removeAt(index)
+    }
+
+    fun updateToCurrency(index: Int, newTo: Currency) {
         to[index] = newTo
     }
+
+
 }
