@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rsudanta.currencyconverter.domain.model.Currency
 import com.rsudanta.currencyconverter.domain.repository.ExchangeRatesRepository
-import com.rsudanta.currencyconverter.presentation.conversion.ConversionState
 import com.rsudanta.currencyconverter.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -73,7 +72,5 @@ class ExchangeRatesViewModel @Inject constructor(private val repository: Exchang
         to[index] = newTo
     }
 
-    fun clearResult() {
-        exchangeRatesState.value = ExchangeRatesState()
-    }
+
 }
