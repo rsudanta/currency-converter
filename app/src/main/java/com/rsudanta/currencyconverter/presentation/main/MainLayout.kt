@@ -48,6 +48,7 @@ fun MainLayout(
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberBottomSheetScaffoldState()
     val conversionError = conversionViewModel.conversionState.value.error
+    val exchangeRateError = exchangeRatesViewModel.exchangeRatesState.value.error
     val currentBottomSheet = sharedViewModel.currentBottomSheet.value
 
     val backgroundAlpha by animateFloatAsState(
@@ -151,6 +152,7 @@ fun MainLayout(
                             sharedViewModel = sharedViewModel,
                             exchangeRatesViewModel = exchangeRatesViewModel,
                             onSelectCurrencyClick = { bottomSheetScreen ->
+                                scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
                                 openSheet(bottomSheetScreen)
                             },
                             onConvertClick = { scaffoldState.snackbarHostState.currentSnackbarData?.dismiss() },
@@ -177,8 +179,14 @@ fun MainLayout(
         }
         DisplaySnackBar(
             scaffoldState = scaffoldState,
-            onComplete = { conversionViewModel.clearResult() },
-            errorMessage = conversionError
+            onComplete = {
+                if (conversionError.isNotEmpty()) {
+                    conversionViewModel.clearResult()
+                } else if (exchangeRateError.isNotEmpty()) {
+                    exchangeRatesViewModel.clearResult()
+                }
+            },
+            errorMessage = conversionError.ifEmpty { exchangeRateError }
         )
     }
 }

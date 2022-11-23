@@ -72,5 +72,7 @@ class ExchangeRatesViewModel @Inject constructor(private val repository: Exchang
         to[index] = newTo
     }
 
-
+    fun clearResult() {
+        exchangeRatesState.value = ExchangeRatesState()
+    }
 }
