@@ -13,4 +13,4 @@ Currency converter is an application for obtaining real-time currency exchange r
 Currency Converter is based on the MVVM architecture.
 <img src="https://www.ericthecoder.com/wp-content/uploads/2020/04/MVVM-Diagram-1-e1586592892648.png" alt="beranda" width="65%" />
 ## Preview
-<a href="https://gifyu.com/image/Svmp5"><img src="https://s3.gifyu.com/images/1138173.gif" alt="1138173.gif" width="32%" /></a>
+<img src="https://media2.giphy.com/media/B6jcS61oBMGktgDncD/giphy.gif?cid=790b761169c0ab4853455ff3f3ae525d4bc033c1e7badad8&rid=giphy.gif&ct=g" width="32%"/>
